@@ -100,10 +100,11 @@ public class Gamer {
 		return result;
 	}
 
-	public void removePlayer() {
-		System.out.println("Player " + name + " disconnected before.");
+	public void removePlayer() throws IOException {
+		System.out.println("Player " + name + " disconnected.");
 		Main.removeFreePlayer(this);
 		Main.removeName(this.name);
+		this.server.disconnect();
 	}
 
 	private void addNewPlayer(String[] commands, ArrayList<String> parameter) throws IOException {
@@ -187,15 +188,7 @@ public class Gamer {
 
 			// Repeatedly get commands from the client and process them.
 			System.out.println(name + ":" + command);
-			if (command.contains("$DISCONNECT")) {
-				System.out.println(name + " normal disconnected.");
-				opponent.server.sendMessage("$DISCONNECT");
-				// This client is going down! Remove it
-				Main.removeFreePlayer(this);
-				Main.removeName(name);
-				this.server.disconnect();
-				return;
-			} else if (command.contains("$MULLIGANEND")) {
+			if (command.contains("$MULLIGANEND")) {
 				endMuligan = true;
 				ArrayList<String> parameter = MyFunction.getTextBetween(command);
 				int nc = Integer.parseInt(parameter.get(1));
@@ -349,28 +342,6 @@ public class Gamer {
 		server.sendMessage(s);
 	}
 
-	// void removeBothClient() {
-	// if (name != null) {
-	// Main.names.remove(name);
-	// }
-	// if (output != null) {
-	// Main.writers.remove(output);
-	// }
-	// try {
-	// socket.close();
-	// } catch (IOException e) {
-	// }
-	// if (opponent.name != null) {
-	// Main.names.remove(opponent.name);
-	// }
-	// if (opponent.output != null) {
-	// Main.writers.remove(opponent.output);
-	// }
-	// try {
-	// opponent.socket.close();
-	// } catch (IOException e) {
-	// }
-	// }
 
 	public static ArrayList<String> getTextBetween(String fromText) {
 		ArrayList<String> rtrn = new ArrayList<>();

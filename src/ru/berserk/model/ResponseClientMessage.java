@@ -36,6 +36,18 @@ public class ResponseClientMessage extends Thread {
             player.endTurn();
             gamer.opponent.sendUntapAll();
             gamer.opponent.player.newTurn();
+        } else if (fromServer.startsWith("$DISCONNECT")) {
+           // System.out.println(name + " normal disconnected.");
+            gamer.opponent.server.sendMessage("$DISCONNECT");
+            gamer.removePlayer();
+            return;
+        }  else if (fromServer.startsWith("$SURREND")) {
+            //System.out.println(name + " surrend.");
+        	gamer.opponent.server.sendMessage("#Surrend("+player.playerName+")");
+            gamer.server.sendMessage("#Surrend("+player.playerName+")");
+            gamer.opponent.removePlayer();
+            gamer.removePlayer();
+            return;
         } else if (fromServer.startsWith("$CHOISEBLOCKER(")) {
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
             gamer.opponent.status = PlayerStatus.IChoiceBlocker;
