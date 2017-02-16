@@ -1,7 +1,5 @@
 package ru.berserk.model;
 
-import static ru.berserk.model.Main.COIN_START;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;

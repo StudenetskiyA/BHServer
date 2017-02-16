@@ -44,7 +44,7 @@ public class ServerEndpointDemo {
     }
 
     @OnClose
-    public void handleClose() {
+    public void handleClose() throws IOException {
         System.out.println("clien is now disconnected");
         this.gamer.removePlayer();
     }
