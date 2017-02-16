@@ -272,15 +272,19 @@ public class Creature extends Card {
         super(_card.cost, _card.name, _card.creatureType, _card.color, _card.type, _card.targetType, _card.tapTargetType, _card.text, _card.power, _card.hp);
         image = _card.image;
         cost = _card.cost;
-        isTapped = false;
-        isSummonedJust = true;
+        isTapped = _card.isTapped;
+        isSummonedJust = _card.isSummonedJust;
         name = _card.name;
         owner = _card.owner;
         trueOwner= _card.owner;
-        if (text.contains("Броня ")) {
-            maxArmor = MyFunction.getNumericAfterText(text, "Броня ");
-            currentArmor = getMaxArmor();
-        }
+        effects = _card.effects;
+        takedDamageThisTurn = _card.takedDamageThisTurn;
+        attackThisTurn = _card.attackThisTurn;
+        blockThisTurn = _card.blockThisTurn;
+
+        currentArmor = _card.currentArmor;
+        maxArmor = _card.maxArmor;
+        damage = _card.damage;
     }
 
     Creature(Card _card, Player _owner) {
@@ -526,8 +530,10 @@ public class Creature extends Card {
     void changeControll() throws IOException {
         //add to opponent
         Creature tmp = new Creature(this);
-        tmp.owner = owner.owner.opponent.player;
         owner.owner.opponent.board.addExistCreatureToBoard(tmp,owner.owner.opponent.player);//without cry
+        tmp.owner = owner.owner.opponent.player;
+        tmp.effects.battlecryPlayed=true;
+        tmp.isSummonedJust=true;
         System.out.println("Owner = "+tmp.owner.playerName);
         System.out.println("True owner = "+tmp.trueOwner.playerName);
         //Send message
