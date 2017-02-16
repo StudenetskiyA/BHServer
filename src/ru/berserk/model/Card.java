@@ -569,6 +569,7 @@ class Card {
         }
         if (txt.contains("Взять под контроль выбранное существо"))
         {
+        	if (_cr.owner!=_who)
             _cr.changeControll();
         }
         if (txt.contains("Ранить на остаток выбранное существо и своего героя на столько же")) {
