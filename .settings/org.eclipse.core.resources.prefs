@@ -1,0 +1,9 @@
+eclipse.preferences.version=1
+encoding//src/ru/berserk/model/Board.java=UTF-8
+encoding//src/ru/berserk/model/Card.java=UTF-8
+encoding//src/ru/berserk/model/Creature.java=UTF-8
+encoding//src/ru/berserk/model/Equpiment.java=UTF-8
+encoding//src/ru/berserk/model/GameQueue.java=UTF-8
+encoding//src/ru/berserk/model/Player.java=UTF-8
+encoding//src/ru/berserk/model/ResponseClientMessage.java=UTF-8
+encoding/<project>=ISO-8859-1
