@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.ListIterator;
 
+import ru.berserk.model.MyFunction.PlayerStatus;
+
 // Created by StudenetskiyA on 30.12.2016.
 
 class Card {
@@ -620,15 +622,17 @@ class Card {
                 //pause until player choice target.
                 owner.opponent.sendChoiceForSpell(7,0, _who.name+" просит выбрать цель.");
                 System.out.println("pause");
-                synchronized (owner.yesNoChoiceMonitor) {
+                synchronized (owner.opponent.yesNoChoiceMonitor) {
                     try {
-                        owner.yesNoChoiceMonitor.wait();
+                        owner.opponent.yesNoChoiceMonitor.wait();
                     } catch (InterruptedException e2) {
                         e2.printStackTrace();
                     }
                 }
                 System.out.println("resume");
                 _whis.owner.opponent.choiceCreature.changeControll();
+                owner.opponent.setPlayerGameStatus(PlayerStatus.EnemyTurn);
+                owner.setPlayerGameStatus(PlayerStatus.MyTurn);
             }
             //change control
         }
