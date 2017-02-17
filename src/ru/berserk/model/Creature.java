@@ -159,67 +159,67 @@ public class Creature extends Card {
         void takePoison(int p) throws IOException {
             if (poison <= p)
                 poison = p;
-            owner.owner.sendBoth("#TakeCreatureEffect(" + owner.playerName + "," + owner.getNumberOfCreature(this.whis) + "," + MyFunction.Effect.poison.getValue() + "," + p + ")");
+            owner.owner.sendBoth("#TakeCreatureIdEffect(" + whis.id + "," + MyFunction.Effect.poison.getValue() + "," + p + ")");
         }
 
         void takeTurnToDie(int t) throws IOException {
             turnToDie = t;
-            owner.owner.sendBoth("#TakeCreatureEffect(" + owner.playerName + "," + owner.getNumberOfCreature(this.whis) + "," + MyFunction.Effect.turnToDie.getValue() + "," + t + ")");
+            owner.owner.sendBoth("#TakeCreatureIdEffect(" + whis.id + "," + MyFunction.Effect.turnToDie.getValue() + "," + t + ")");
         }
 
         void takeVulnerability() throws IOException {
             vulnerability = true;
-            owner.owner.sendBoth("#TakeCreatureEffect(" + owner.playerName + "," + owner.getNumberOfCreature(this.whis) + "," + MyFunction.Effect.vulnerability.getValue() + "," + 0 + ")");
+            owner.owner.sendBoth("#TakeCreatureIdEffect(" + whis.id + "," + MyFunction.Effect.vulnerability.getValue() + "," + 0 + ")");
         }
 
         void takeDieEffect() throws IOException {
             isDie = true;
-            owner.owner.sendBoth("#TakeCreatureEffect(" + owner.playerName + "," + owner.getNumberOfCreature(this.whis) + "," + MyFunction.Effect.die.getValue() + "," + 0 + ")");
+            owner.owner.sendBoth("#TakeCreatureIdEffect(" + whis.id + "," + MyFunction.Effect.die.getValue() + "," + 0 + ")");
         }
 
         void takeBonusPowerUEOT(int n) throws IOException {
             bonusPowerUEOT += n;
-            owner.owner.sendBoth("#TakeCreatureEffect(" + owner.playerName + "," + owner.getNumberOfCreature(this.whis) + "," + MyFunction.Effect.bonusPowerUEOT.getValue() + "," + n + ")");
+            owner.owner.sendBoth("#TakeCreatureIdEffect("+ whis.id + "," + MyFunction.Effect.bonusPowerUEOT.getValue() + "," + n + ")");
         }
 
         void takeControlChange() throws IOException {
             controlChanged = true;
-            whis.owner.owner.sendBoth("#TakeCreatureBEffect("+ whis.id + "," + MyFunction.Effect.controlChanged.getValue() + "," + 0 + ")");
+            whis.owner.owner.sendBoth("#TakeCreatureIdEffect("+ whis.id + "," + MyFunction.Effect.controlChanged.getValue() + "," + 0 + ")");
         }
         
         void takeBonusPower(int n) throws IOException {
             bonusPower += n;
-            owner.owner.sendBoth("#TakeCreatureEffect(" + owner.playerName + "," + owner.getNumberOfCreature(this.whis) + "," + MyFunction.Effect.bonusPower.getValue() + "," + n + ")");
+            owner.owner.sendBoth("#TakeCreatureIdEffect(" + whis.id + "," + MyFunction.Effect.bonusPower.getValue() + "," + n + ")");
         }
 
         void takeBonusTougnessUEOT(int n) throws IOException {
             bonusTougnessUEOT += n;
-            owner.owner.sendBoth("#TakeCreatureEffect(" + owner.playerName + "," + owner.getNumberOfCreature(this.whis) + "," + MyFunction.Effect.bonusTougnessUEOT.getValue() + "," + n + ")");
+            owner.owner.sendBoth("#TakeCreatureIdEffect(" + whis.id + "," + MyFunction.Effect.bonusTougnessUEOT.getValue() + "," + n + ")");
         }
 
         void takeBonusTougness(int n) throws IOException {
             bonusTougness += n;
-            owner.owner.sendBoth("#TakeCreatureEffect(" + owner.playerName + "," + owner.getNumberOfCreature(this.whis) + "," + MyFunction.Effect.bonusTougness.getValue() + "," + n + ")");
+            owner.owner.sendBoth("#TakeCreatureIdEffect(" + whis.id + "," + MyFunction.Effect.bonusTougness.getValue() + "," + n + ")");
         }
 
         void takeBonusArmor(int n) throws IOException {
             bonusArmor += n;
             currentArmor += n;
-            owner.owner.sendBoth("#TakeCreatureEffect(" + owner.playerName + "," + owner.getNumberOfCreature(this.whis) + "," + MyFunction.Effect.bonusArmor.getValue() + "," + n + ")");
+            owner.owner.sendBoth("#TakeCreatureIdEffect(" + whis.id + "," + MyFunction.Effect.bonusArmor.getValue() + "," + n + ")");
         }
 
         void takeAdditionalText(String txt) throws IOException {
             additionalText += txt;
-            owner.owner.sendBoth("#TakeCreatureText(" + owner.playerName + "," + owner.getNumberOfCreature(this.whis) + "," + txt + ")");
+            owner.owner.sendBoth("#TakeCreatureIdText(" + whis.id + "," + txt + ")");
         }
 
         void looseAdditionalText(String txt) throws IOException {
-            owner.owner.sendBoth("#LooseCreatureText(" + owner.playerName + "," + owner.getNumberOfCreature(this.whis) + "," + txt + ")");
+            owner.owner.sendBoth("#LooseCreatureIdText(" + whis.id + "," + txt + ")");
         }
 
         void takeTemporaryAdditionalText(String txt, int lenght) throws IOException {
             temporaryTextEffects.add(new TemporaryTextEffect(txt,lenght));
-            owner.owner.sendBoth("#TakeCreatureText(" + owner.playerName + "," + owner.getNumberOfCreature(this.whis) + "," + txt + ")");
+            owner.owner.sendBoth("#TakeCreatureIdText(" + whis.id + "," + txt + ")");
         }
     }
 
