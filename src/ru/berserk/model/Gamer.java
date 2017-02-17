@@ -37,6 +37,7 @@ public class Gamer {
 	ArrayList<String> deckList = new ArrayList<>();
 	boolean endMuligan = false;
 	boolean ready = true;
+	//For search
 	int choiceXcolor = 0;
 	int choiceXtype = 0;
 	String choiceXcreatureType = "";
@@ -44,7 +45,8 @@ public class Gamer {
 	int choiceXcostExactly = 0;
 	int choiceYesNo = 0;
 	String choiceXname;
-
+    //For spell what aks to choice creature
+	Creature choiceCreature;
 	ServerEndpointDemo server;
 
 	Gamer(ServerEndpointDemo server) {
@@ -302,7 +304,7 @@ public class Gamer {
 	}
 
 	void sendChoiceForSpell(int targetType, int cost, String message) {
-		// #ChoiceForSpell(PlayerName,Status,TargetType,costN-)
+		// #ChoiceForSpell(PlayerName,Status,TargetType,costN-,message)
 		System.out.println("Sending choice for spell to " + player.playerName);
 		String s = "#ChoiceForSpell(";
 		s += player.playerName + ",";

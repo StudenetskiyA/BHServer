@@ -92,6 +92,16 @@ public class Player extends Card {
         cardInHand.remove(n);
     }
 
+    Creature getCreatureById(String _id){
+    	for (int i=0;i<creatures.size();i++){
+    		if (creatures.get(i).id.equals(_id)) return creatures.get(i);
+    	}
+    	for (int i=0;i<owner.opponent.player.creatures.size();i++){
+    		if (owner.opponent.player.creatures.get(i).id.equals(_id)) return owner.opponent.player.creatures.get(i);
+    	}
+    	return null;
+    }
+    
     int getNumberOfCreature(Creature _cr) {
     	for (int i=0;i<creatures.size();i++){
     		if (creatures.get(i).id.equals(_cr.id)) return i;
@@ -344,7 +354,7 @@ public class Player extends Card {
                     owner.setPlayerGameStatus(MyFunction.PlayerStatus.choiceTarget);
                     owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceTarget);
                     ActivatedAbility.creature = tmp;
-                    ActivatedAbility.whatAbility = nothing;
+                    ActivatedAbility.whatAbility = onCryAbility;
                     //pause until player choice target.
                     owner.sendChoiceTarget(tmp.name + " просит выбрать цель.");
                     tmp.effects.battlecryPlayed = true;

@@ -275,6 +275,8 @@ class Card {
                 return new Card(4, name, "Событие", 2, 4, 0, 0, "Статичный эффект.", 0, 0);
             case "Пустошь Тул-Багара":
                 return new Card(1, name, "Событие", 5, 4, 0, 0, "Статичный эффект.", 0, 0);
+            case "Гипноз":
+                return new Card(7, name, "", 1, 1, 0, 0, "Противник выбирает существо, оно переходит под ваш контроль.", 0, 0); 
             default:
                 System.out.println("Ошибка - Неопознанная карта:" + name);
                 return null;
@@ -518,9 +520,7 @@ class Card {
                 _pl.takeDamage(dmg);
             }
         }
-        if (txt.contains("Жажда "))
-
-        {
+        if (txt.contains("Жажда ")) {
             int dmg = MyFunction.getNumericAfterText(txt, "Жажда ");
             if (_cr != null) {
                 owner.printToView(0, _who.name + " жаждит " + _cr.name + " на " + dmg + ".");
@@ -606,7 +606,7 @@ class Card {
         {
             //Check may be target
             int c = _whis.owner.opponent.player.creatures.size();
-            //TODO Magic protect
+            //Magic protect not worked when opponent choice self creature.
             if (c==0){
 
             }
@@ -618,19 +618,18 @@ class Card {
                 owner.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceTarget);
                 owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.choiceTarget);
                 //pause until player choice target.
-                owner.sendChoiceForSpell(7,0, _who+" просит выбрать цель.");
+                owner.opponent.sendChoiceForSpell(7,0, _who.name+" просит выбрать цель.");
                 System.out.println("pause");
-                synchronized (owner.cretureDiedMonitor) {
+                synchronized (owner.yesNoChoiceMonitor) {
                     try {
-                        owner.cretureDiedMonitor.wait();
+                        owner.yesNoChoiceMonitor.wait();
                     } catch (InterruptedException e2) {
                         e2.printStackTrace();
                     }
                 }
                 System.out.println("resume");
-
+                _whis.owner.opponent.choiceCreature.changeControll();
             }
-
             //change control
         }
 
@@ -764,8 +763,6 @@ class Card {
                 _pl.takeDamage(dmg);
             }
         }
-
-        // Main.gameQueue.responseAllQueue();
     }
 
     boolean haveRage() {

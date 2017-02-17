@@ -65,6 +65,13 @@ public class ResponseClientMessage extends Thread {
             player.cardInHand.remove(n);
             dontDoQueue = true;
             freeMonitor = true;
+        } else if (fromServer.startsWith("$SPELLCHOICECREATURETARGET(")) {
+            ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
+            gamer.choiceCreature = player.getCreatureById(parameter.get(0));
+            dontDoQueue = true;
+            synchronized (gamer.yesNoChoiceMonitor) {
+                gamer.yesNoChoiceMonitor.notify();
+            }
         } else if (fromServer.startsWith("$CHOICEYESNO(")) {
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
             gamer.choiceYesNo = Integer.parseInt(parameter.get(0));

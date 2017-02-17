@@ -14,7 +14,8 @@ public class MyFunction {
         static WhatAbility whatAbility=WhatAbility.nothing;
 
         enum WhatAbility {
-            heroAbility(1), weaponAbility(2), toHandAbility(3), onUpkeepPlayed(4), onDeathPlayed(5), onOtherDeathPlayed(6), nothing(0);
+            heroAbility(1), weaponAbility(2), toHandAbility(3), onUpkeepPlayed(4), onDeathPlayed(5), onOtherDeathPlayed(6), 
+            spellAbility(7), onCryAbility(8), nothing(0);
 
             private final int value;
 
@@ -42,6 +43,10 @@ public class MyFunction {
                         return onDeathPlayed;
                     case 6:
                         return onOtherDeathPlayed;
+                    case 7:
+                    	return spellAbility;
+                    case 8:
+                    	return onCryAbility;
                 }
                 return null;
             }
