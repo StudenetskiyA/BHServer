@@ -85,10 +85,11 @@ public class Player extends Card {
 
     void removeCardFromHand(Card c) throws IOException {
         cardInHand.remove(c);
-        owner.sendBoth("#RemoveCardFromHand(" + playerName + "," + c.name + ")");
+        owner.sendBoth("#RemoveCardFromHandById(" + playerName + "," + c.id + ")");
     }
 
-    void removeCardFromHand(int n) {
+    void removeCardFromHand(int n) throws IOException {
+    	 owner.sendBoth("#RemoveCardFromHandById(" + playerName + "," + cardInHand.get(n).id + ")");
         cardInHand.remove(n);
     }
 
