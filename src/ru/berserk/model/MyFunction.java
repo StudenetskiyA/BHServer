@@ -109,7 +109,7 @@ public class MyFunction {
 
     enum Effect{
         poison(1), vulnerability(2),turnToDie(3), die(4), bonusPowerUEOT(5), bonusPower(6), bonusTougnessUEOT(7), bonusTougness(8),
-        bonusArmor(9), cantattackandblock(10);
+        bonusArmor(9), cantattackandblock(10), controlChanged(11), notOpenAtBeginNextTurn(12);
 
         private final int value;
 
@@ -143,6 +143,10 @@ public class MyFunction {
                     return bonusArmor;
                 case 10:
                     return cantattackandblock;
+                case 11:
+                	return controlChanged;
+                case 12:
+                	return notOpenAtBeginNextTurn;
             }
             return null;
         }

@@ -588,7 +588,7 @@ class Card {
         if (txt.contains("Нанести урон выбранному существу, равный его удару.")) {
             int dmg = _cr.getPower();
             owner.printToView(0, _cr.name + " получил " + dmg + " урона.");
-            _cr.takeDamage(dmg, _who, Creature.DamageSource.spell);
+           // _cr.takeDamage(dmg, _who, Creature.DamageSource.spell);
         }
         if (txt.contains("Выбранное существо получает '")) {
             String s = MyFunction.getTextBetweenSymbol(txt, "Выбранное существо получает '", "'");
@@ -695,7 +695,7 @@ class Card {
                 Creature tmp = temp.next();
                 tmp.takeDamage(dmg, _who, Creature.DamageSource.ability);
             }
-            owner.printToView(0, _who.name + " ранит всех существ противника на " + dmg + ".");
+           //_cr. owner.printToView(0, _who.name + " ранит всех существ противника на " + dmg + ".");
         }
         if (txt.contains(("Ранить каждое существо на "))) {
             int dmg = MyFunction.getNumericAfterText(txt, "Ранить каждое существо на ");
@@ -710,11 +710,10 @@ class Card {
                 Creature tmp = temp2.next();
                 tmp.takeDamage(dmg, _who, Creature.DamageSource.ability);
             }
-            owner.printToView(0, _who.name + " ранит всех существ на " + dmg + ".");
+           // owner.printToView(0, _who.name + " ранит всех существ на " + dmg + ".");
         }
-        if (txt.contains(("Каждое другое существо погибает в конце хода противника.")))
-
-        {//TODO Fix it with deathrattle
+        if (txt.contains(("Каждое другое существо погибает в конце хода противника."))) {
+        	//TODO Fix it with deathrattle
             for (int i = _whis.owner.opponent.player.creatures.size() - 1; i >= 0; i--) {
                 _whis.owner.opponent.player.creatures.get(i).effects.takeTurnToDie(2);
             }

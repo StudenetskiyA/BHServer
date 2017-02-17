@@ -40,6 +40,7 @@ public class Creature extends Card {
         boolean upkeepPlayed = false;
         boolean battlecryPlayed = false;
         boolean deathPlayed = false;
+        boolean controlChanged = false;
         ArrayList<TemporaryTextEffect> temporaryTextEffects = new ArrayList<>();
 
         class TemporaryTextEffect{
@@ -54,6 +55,26 @@ public class Creature extends Card {
 
         Effects(Creature _cr) {
             whis = _cr;
+        }
+        
+        Effects(Creature _cr,Effects ef){
+        	 whis = _cr;
+        	  additionalText = ef.additionalText;
+              changedControll= ef.changedControll;
+              isDie = ef.isDie;
+              poison = ef.poison;
+              bonusPower = ef.bonusPower;
+              bonusPowerUEOT = ef.bonusPowerUEOT;
+              bonusTougness = ef.bonusTougness;
+              bonusTougnessUEOT = ef.bonusTougnessUEOT;
+              bonusArmor = ef.bonusArmor;
+              turnToDie = 999;
+              vulnerability = ef.vulnerability;
+              upkeepPlayed = ef.upkeepPlayed;
+              battlecryPlayed = ef.battlecryPlayed;
+              deathPlayed = ef.deathPlayed;
+              controlChanged = ef.controlChanged;
+              temporaryTextEffects = new ArrayList<>(ef.temporaryTextEffects);
         }
 
         public void EOT() throws IOException {
@@ -161,6 +182,11 @@ public class Creature extends Card {
             owner.owner.sendBoth("#TakeCreatureEffect(" + owner.playerName + "," + owner.getNumberOfCreature(this.whis) + "," + MyFunction.Effect.bonusPowerUEOT.getValue() + "," + n + ")");
         }
 
+        void takeControlChange() throws IOException {
+            controlChanged = true;
+            whis.owner.owner.sendBoth("#TakeCreatureBEffect("+ whis.id + "," + MyFunction.Effect.controlChanged.getValue() + "," + 0 + ")");
+        }
+        
         void takeBonusPower(int n) throws IOException {
             bonusPower += n;
             owner.owner.sendBoth("#TakeCreatureEffect(" + owner.playerName + "," + owner.getNumberOfCreature(this.whis) + "," + MyFunction.Effect.bonusPower.getValue() + "," + n + ")");
@@ -277,11 +303,11 @@ public class Creature extends Card {
         name = _card.name;
         owner = _card.owner;
         trueOwner= _card.owner;
-        effects = _card.effects;
+        effects = new Effects(_card,_card.effects);
         takedDamageThisTurn = _card.takedDamageThisTurn;
         attackThisTurn = _card.attackThisTurn;
         blockThisTurn = _card.blockThisTurn;
-
+        id = _card.id;
         currentArmor = _card.currentArmor;
         maxArmor = _card.maxArmor;
         damage = _card.damage;
@@ -528,17 +554,31 @@ public class Creature extends Card {
         owner.owner.gameQueue.push(new GameQueue.QueueEvent("Die", this, 0));
     }
 
+//    void sendAllAboutCreature() throws IOException{
+//    	//TODO All field!
+//    	String s="#AllAboutCreature(";
+//    	s+=this.owner.playerName+",";
+//    	s+=this.id+",";		
+//    	s+=isTapped+",";
+//    	s+=isSummonedJust+",";
+//        s+=damage+",";
+//        s+=effects.additionalText+",";
+//    	s+=")";
+//    	owner.owner.server.sendMessage(s);
+//    }
+    
     void changeControll() throws IOException {
         //add to opponent
         Creature tmp = new Creature(this);
         owner.owner.opponent.board.addExistCreatureToBoard(tmp,owner.owner.opponent.player);//without cry
         tmp.owner = owner.owner.opponent.player;
+        tmp.effects = new Effects(tmp,this.effects);
         tmp.effects.battlecryPlayed=true;
         tmp.isSummonedJust=true;
-        System.out.println("Owner = "+tmp.owner.playerName);
-        System.out.println("True owner = "+tmp.trueOwner.playerName);
         //Send message
         owner.owner.sendBoth("#ChangeControll(" + owner.playerName + "," + owner.getNumberOfCreature(this) +")");
+        tmp.effects.takeControlChange();
+        
         //remove from my board
         removeCreatureFromPlayerBoard();
     }
@@ -551,9 +591,8 @@ public class Creature extends Card {
     void returnToHand() throws IOException {
         owner.owner.sendBoth("#ReturnToHand(" + owner.playerName + "," + owner.getNumberOfCreature(this) +")");
         System.out.println("True owner to return = "+trueOwner.playerName);
-        trueOwner.owner.server.sendMessage("#AddCardToHand(" + this.name + ")");//TODO Change to player.
+        trueOwner.addCardToHand(this);
         removeCreatureFromPlayerBoard();
-        trueOwner.cardInHand.add(0, this);
     }
 
     void removeCreatureFromPlayerBoard() {

@@ -95,7 +95,7 @@ public class Gamer {
 			result.add(card);
 			// System.out.println("Card = "+card);
 			Card tmp = new Card(Card.getCardByName(card));
-			tmp.id = tmp.name+i;
+			tmp.id = name+i;
 			player.deck.cards.add(tmp);
 			i++;
 		}

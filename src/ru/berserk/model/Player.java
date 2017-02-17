@@ -93,7 +93,10 @@ public class Player extends Card {
     }
 
     int getNumberOfCreature(Creature _cr) {
-        return creatures.indexOf(_cr);
+    	for (int i=0;i<creatures.size();i++){
+    		if (creatures.get(i).id.equals(_cr.id)) return i;
+    	}
+        return -1;
     }
 
     int getNumberOfAlivedCreatures() {
