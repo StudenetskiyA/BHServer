@@ -94,7 +94,9 @@ public class Gamer {
 		while (!(card = commands[i]).equals("$ENDDECK")) {
 			result.add(card);
 			// System.out.println("Card = "+card);
-			player.deck.cards.add(new Card(Card.getCardByName(card)));
+			Card tmp = new Card(Card.getCardByName(card));
+			tmp.id = tmp.name+i;
+			player.deck.cards.add(tmp);
 			i++;
 		}
 		return result;
@@ -337,11 +339,11 @@ public class Gamer {
 		s += player.cardInHand.size() + ",";
 		for (int i = 0; i < player.cardInHand.size(); i++) {
 			s += player.cardInHand.get(i).name + ",";
+			s += player.cardInHand.get(i).id + ",";
 		}
 		s += ")";
 		server.sendMessage(s);
 	}
-
 
 	public static ArrayList<String> getTextBetween(String fromText) {
 		ArrayList<String> rtrn = new ArrayList<>();

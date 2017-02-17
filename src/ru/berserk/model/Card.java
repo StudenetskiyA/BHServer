@@ -8,6 +8,7 @@ import java.util.ListIterator;
 
 class Card {
     //Gamer owner;
+	String id="";
     int cost;
     String name;
     String text;
@@ -686,9 +687,7 @@ class Card {
             _whis.temporaryCoin += dmg;
             owner.printToView(0, _whis.playerName + " получил " + dmg + " монет до конца хода.");
         }
-        if (txt.contains(("Ранить каждое существо противника на ")))
-
-        {
+        if (txt.contains(("Ранить каждое существо противника на "))) {
             int dmg = MyFunction.getNumericAfterText(txt, "Ранить каждое существо противника на ");
 
             ListIterator<Creature> temp = _whis.owner.opponent.player.creatures.listIterator();
@@ -698,9 +697,7 @@ class Card {
             }
             owner.printToView(0, _who.name + " ранит всех существ противника на " + dmg + ".");
         }
-        if (txt.contains(("Ранить каждое существо на ")))
-
-        {
+        if (txt.contains(("Ранить каждое существо на "))) {
             int dmg = MyFunction.getNumericAfterText(txt, "Ранить каждое существо на ");
 
             ListIterator<Creature> temp = _whis.owner.opponent.player.creatures.listIterator();

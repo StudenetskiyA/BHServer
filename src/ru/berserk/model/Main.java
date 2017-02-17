@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Main {
-    static final int COIN_START = 0;
+    static final int COIN_START = 10;
     static final String CLIENT_VERSION = "0.02";
     public static int randomNum = ThreadLocalRandom.current().nextInt(100, 999 + 1);
     private static ArrayList<String> names = new ArrayList<>();

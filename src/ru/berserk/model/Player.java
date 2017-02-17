@@ -58,7 +58,7 @@ public class Player extends Card {
 
     void addCreatureToList(Creature c) throws IOException {
         creatures.add(c);
-        owner.sendBoth("#PutCreatureToBoard(" + playerName + "," + c.name + ")");
+        owner.sendBoth("#PutCreatureToBoard(" + playerName + "," + c.name + "," + c.id + ")");
         owner.sendStatus();
         owner.opponent.sendStatus();
     }
@@ -70,7 +70,7 @@ public class Player extends Card {
 
     void addCardToHand(Card c) throws IOException {
         cardInHand.add(c);
-        owner.server.sendMessage("#AddCardToHand(" + c.name + ")");
+        owner.server.sendMessage("#AddCardToHand(" + c.name + ","+c.id+")");
     }
 
     void addCardToGraveyard(Card c) throws IOException {
@@ -324,7 +324,7 @@ public class Player extends Card {
                 }
         }
     }
-
+    
     void massSummonCheckNeededTarget() throws IOException {//if someone wants to choice target at death(self or other) - pause game
         crCryed = new ArrayList<>(creatures);//died creature
         ListIterator<Creature> temp = crCryed.listIterator();
@@ -466,6 +466,14 @@ public class Player extends Card {
         //owner.opponent.sendStatus();
     }
 
+    Card getCardByID(String id) {
+    	for (int i=0;i<cardInHand.size();i++){
+    		if (cardInHand.get(i).id.equals(id)) return cardInHand.get(i);
+    	}
+    	//TODO Other 
+    	return null;
+    }
+    
     void playCardX(int num, Card _card, Creature _targetCreature, Player _targetPlayer, int x) throws IOException {
         owner.printToView(0, "X = " + x + ".");
         _card.text = _card.text.replace("ХХХ", String.valueOf(x));

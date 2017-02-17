@@ -470,7 +470,8 @@ public class Creature extends Card {
         if ((effects.getVulnerability())) dmg++;
 
         damage += dmg;
-        owner.owner.sendBoth("#TakeCreatureDamage(" + owner.playerName + "," + owner.getNumberOfCreature(this) + "," + dmg + ")");
+       // owner.owner.sendBoth("#TakeCreatureDamage(" + owner.playerName + "," + owner.getNumberOfCreature(this) + "," "+ dmg + ")");
+        owner.owner.sendBoth("#TakeCreatureDamage(" + owner.playerName + "," + this.id+","+ dmg + ")");
 
         takedDamageThisTurn = true;
 
@@ -550,7 +551,7 @@ public class Creature extends Card {
     void returnToHand() throws IOException {
         owner.owner.sendBoth("#ReturnToHand(" + owner.playerName + "," + owner.getNumberOfCreature(this) +")");
         System.out.println("True owner to return = "+trueOwner.playerName);
-        trueOwner.owner.server.sendMessage("#AddCardToHand(" + this.name + ")");
+        trueOwner.owner.server.sendMessage("#AddCardToHand(" + this.name + ")");//TODO Change to player.
         removeCreatureFromPlayerBoard();
         trueOwner.cardInHand.add(0, this);
     }
