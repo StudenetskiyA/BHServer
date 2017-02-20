@@ -9,19 +9,25 @@ import java.util.*;
 
 public class Deck {
     ArrayList<Card> cards = new ArrayList<>();
-    public String name;
-
-    public Deck(String _name){
-        name=_name;
+    
+    public Deck(ArrayList<Card> _cards){
+    	cards = _cards;
     }
 
     public int getCardExpiried(){
         return cards.size();
     }
 
+    public Card searchCardByID(String id){
+        for (int i=0;i<cards.size();i++){
+            if (cards.get(i).id.equals(id)) return cards.get(i);
+        }
+        return null;
+    }
+        
     public Card searchCard(String name){
         for (int i=0;i<cards.size();i++){
-            if (cards.get(i).equals(name)) return cards.get(i);
+            if (cards.get(i).name.equals(name)) return cards.get(i);
         }
         return null;
     }
@@ -60,8 +66,16 @@ public class Deck {
             cards.remove(cards.size()-1);
     }
 
-    public void putOnBottomDeck(String _cardName){
-        cards.add(0,Card.getCardByName(_cardName));
+    Card getCardByID(String _id){
+    	for (int i=0;i<cards.size();i++){
+    		if (cards.get(i).id.equals(_id)) return cards.get(i);
+    	}
+    	//TODO Other 
+    	return null;
+    }
+    
+    public void putOnBottomDeck(String _id){
+        cards.add(0,this.getCardByID(_id));
     }
 
     public void putOnBottomDeck(Card _card){

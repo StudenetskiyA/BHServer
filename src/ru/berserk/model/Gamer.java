@@ -19,8 +19,8 @@ import ru.berserk.model.ServerEndpointDemo;
 public class Gamer {
 	Board board = new Board();
 	String name;
-	Deck simpleDeck = new Deck("defaultDeck");
-	Player player = new Player(this, simpleDeck, "", "", 0);
+	int idCount = 0;
+	Player player = new Player(this, "", "", 0);
 	GameQueue gameQueue = new GameQueue(this);
 	int creatureWhoAttack;
 	int creatureWhoAttackTarget;
@@ -31,12 +31,11 @@ public class Gamer {
 	MyFunction.PlayerStatus status;
 	MyFunction.PlayerStatus memPlayerStatus;
 	Gamer opponent;
-	// BufferedReader input;
-	// PrintWriter output;
 	String deckName;
 	ArrayList<String> deckList = new ArrayList<>();
 	boolean endMuligan = false;
 	boolean ready = true;
+	//For search
 	int choiceXcolor = 0;
 	int choiceXtype = 0;
 	String choiceXcreatureType = "";
@@ -44,7 +43,8 @@ public class Gamer {
 	int choiceXcostExactly = 0;
 	int choiceYesNo = 0;
 	String choiceXname;
-
+    //For spell what aks to choice creature
+	Creature choiceCreature;
 	ServerEndpointDemo server;
 
 	Gamer(ServerEndpointDemo server) {
@@ -87,17 +87,17 @@ public class Gamer {
 		return false;
 	}
 
-	private ArrayList<String> getDeckList(String[] commands) throws IOException {
-		ArrayList<String> result = new ArrayList<>();
-		String card;
+	private Deck getDeckList(String[] commands) throws IOException {
+		ArrayList<Card> result = new ArrayList<>();
 		int i = 1;
-		while (!(card = commands[i]).equals("$ENDDECK")) {
-			result.add(card);
-			// System.out.println("Card = "+card);
-			player.deck.cards.add(new Card(Card.getCardByName(card)));
+		while (!commands[i].equals("$ENDDECK")) {
+		 System.out.println("Card = "+commands[i]);
+			Card tmp = new Card(Card.createCardWithID(this,commands[i]));
+			result.add(tmp);
 			i++;
 		}
-		return result;
+		Deck r = new Deck(result); 
+		return r;
 	}
 
 	public void removePlayer() throws IOException {
@@ -108,7 +108,6 @@ public class Gamer {
 	}
 
 	private void addNewPlayer(String[] commands, ArrayList<String> parameter) throws IOException {
-
 		name = parameter.get(0);
 		System.out.println(name + " connected.");
 
@@ -122,18 +121,19 @@ public class Gamer {
 			// Other name?
 		}
 		deckName = parameter.get(1);
-		deckList = getDeckList(commands);
-		player = new Player(this, player.deck.cards.get(0), player.deck, name);
-
+		Deck tmp  = getDeckList(commands);
+		player = new Player(this, tmp.cards.get(0), name);
+		player.deck=tmp;
 		player.creatures = new ArrayList<>(2);
-
+		
+		System.out.println("Card ID= "+player.deck.cards.get(3).id );
+		
+		if (nameCorrect){
+			server.sendMessage("Server version is "+Main.SERVER_VERSION);
 		server.sendMessage("Hello, " + name + ", you going to play " + deckName + " deck.");
 		server.sendMessage("Waiting for opponent to connect");
 		// Const for shuffle
 		server.sendMessage("$YOUAREOK(" + Main.randomNum + ")");
-		if (!nameCorrect)
-			return;
-		
 		Main.addFreePlayer(this);
 
 		boolean pairFounded = Main.findFreePlayerFor(this);
@@ -145,6 +145,7 @@ public class Gamer {
 			// Get shuffled deck and send to opponent
 			startGame();
 			opponent.startGame();
+		}
 		}
 
 	}
@@ -188,18 +189,23 @@ public class Gamer {
 
 			// Repeatedly get commands from the client and process them.
 			System.out.println(name + ":" + command);
-			if (command.contains("$MULLIGANEND")) {
+			if (command.contains("$MULLIGANEND")) {//0,1,0,1
 				endMuligan = true;
+				int nc=0;
 				ArrayList<String> parameter = MyFunction.getTextBetween(command);
-				int nc = Integer.parseInt(parameter.get(1));
 				status = MyFunction.PlayerStatus.waitingMulligan;
-				for (int i = 0; i < nc; i++) {
-					player.deck.putOnBottomDeck(parameter.get(i + 2));
-					int a = MyFunction.searchCardInHandByName(player.cardInHand, parameter.get(i + 2));
-					player.removeCardFromHand(a);
+				for (int i=3;i>=0;i--){
+					if (Integer.parseInt(parameter.get(i))==1){
+						nc++;
+						player.deck.putOnBottomDeck(player.cardInHand.get(i));
+						player.removeCardFromHand(player.cardInHand.get(i));
+						//It may be not good. You may remove card with same name, but other position.
+					}
 				}
+				
 				for (int i = 0; i < nc; i++)
 					player.drawCard();
+				
 				sendStatus();
 				if (opponent.endMuligan) {
 					// START
@@ -300,7 +306,7 @@ public class Gamer {
 	}
 
 	void sendChoiceForSpell(int targetType, int cost, String message) {
-		// #ChoiceForSpell(PlayerName,Status,TargetType,costN-)
+		// #ChoiceForSpell(PlayerName,Status,TargetType,costN-,message)
 		System.out.println("Sending choice for spell to " + player.playerName);
 		String s = "#ChoiceForSpell(";
 		s += player.playerName + ",";
@@ -337,11 +343,11 @@ public class Gamer {
 		s += player.cardInHand.size() + ",";
 		for (int i = 0; i < player.cardInHand.size(); i++) {
 			s += player.cardInHand.get(i).name + ",";
+			s += player.cardInHand.get(i).id + ",";
 		}
 		s += ")";
 		server.sendMessage(s);
 	}
-
 
 	public static ArrayList<String> getTextBetween(String fromText) {
 		ArrayList<String> rtrn = new ArrayList<>();

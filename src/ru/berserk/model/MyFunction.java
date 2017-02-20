@@ -14,7 +14,8 @@ public class MyFunction {
         static WhatAbility whatAbility=WhatAbility.nothing;
 
         enum WhatAbility {
-            heroAbility(1), weaponAbility(2), toHandAbility(3), onUpkeepPlayed(4), onDeathPlayed(5), onOtherDeathPlayed(6), nothing(0);
+            heroAbility(1), weaponAbility(2), toHandAbility(3), onUpkeepPlayed(4), onDeathPlayed(5), onOtherDeathPlayed(6), 
+            spellAbility(7), onCryAbility(8), nothing(0);
 
             private final int value;
 
@@ -42,6 +43,10 @@ public class MyFunction {
                         return onDeathPlayed;
                     case 6:
                         return onOtherDeathPlayed;
+                    case 7:
+                    	return spellAbility;
+                    case 8:
+                    	return onCryAbility;
                 }
                 return null;
             }
@@ -109,7 +114,7 @@ public class MyFunction {
 
     enum Effect{
         poison(1), vulnerability(2),turnToDie(3), die(4), bonusPowerUEOT(5), bonusPower(6), bonusTougnessUEOT(7), bonusTougness(8),
-        bonusArmor(9), cantattackandblock(10);
+        bonusArmor(9), cantattackandblock(10), controlChanged(11), notOpenAtBeginNextTurn(12);
 
         private final int value;
 
@@ -143,6 +148,10 @@ public class MyFunction {
                     return bonusArmor;
                 case 10:
                     return cantattackandblock;
+                case 11:
+                	return controlChanged;
+                case 12:
+                	return notOpenAtBeginNextTurn;
             }
             return null;
         }

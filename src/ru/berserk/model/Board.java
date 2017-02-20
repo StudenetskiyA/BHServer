@@ -26,10 +26,12 @@ public class Board {
         Creature summonCreature;
         if (!existCreature) {
             summonCreature = new Creature(_creature, _player);
+            summonCreature.id = _creature.id;
             _player.addCreatureToList(summonCreature);
             _player.owner.gameQueue.push(new GameQueue.QueueEvent("Summon", summonCreature, 0));
         } else {
-            summonCreature = _crEx;
+            summonCreature = new Creature(_crEx);
+            summonCreature.id = _creature.id;
             _player.addCreatureToList(summonCreature);
         }
         if (summonCreature.text.contains("Уникальность.")) {
