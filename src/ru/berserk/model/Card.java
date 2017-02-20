@@ -40,6 +40,7 @@ class Card {
 		type = _card.type;
 		power = _card.power;
 		hp = _card.hp;
+		id = _card.id;
 		targetType = _card.targetType;
 		tapTargetType = _card.tapTargetType;
 		creatureType = _card.creatureType;
@@ -77,7 +78,14 @@ class Card {
 		ability(_pl.owner, this, _pl, null, null, this.text);
 	}
 
-	public static Card getCardByName(String name) {
+	public static Card createCardWithID(Gamer gamer, String name){
+		Card c = createCardByName(name);
+		c.id = gamer.name + gamer.idCount;
+		gamer.idCount++;
+		return c;
+	}
+	
+	public static Card createCardByName(String name) {
 		// Here is all cards!
 		switch (name) {
 		case "Тарна":
@@ -101,7 +109,7 @@ class Card {
 		case "Выброс силы":
 			return new Card(2, name, "", 3, 1, 1, 0, "Ранить выбранное существо на 5.", 0, 0);
 		case "Неудача":
-			return new Card(2, name, "", 5, 1, 1, 0,
+			return new Card(1, name, "", 5, 1, 1, 0,
 					"Ранить на остаток выбранное существо и своего героя на столько же.", 0, 0);
 		case "Возрождение":
 			return new Card(1, name, "", 5, 1, 0, 0, "Раскопать (2,0, ,0,0).", 0, 0);
@@ -385,6 +393,7 @@ class Card {
 
 					if (c.cost <= 1 && c.type == 2) {
 						Creature cr = new Creature(c, owner.player);
+				
 						owner.board.addCreatureToBoard(cr, owner.player);
 						owner.gameQueue.push(new GameQueue.QueueEvent("Summon", cr, 0));
 						owner.player.deck.cards.remove(c);
@@ -442,9 +451,7 @@ class Card {
 				}
 			}
 		}
-		if (txt.contains("Поиск ("))
-
-		{// Поиск (type,color,creatureType,cost,costEx,name)
+		if (txt.contains("Поиск (")) {// Поиск (type,color,creatureType,cost,costEx,name)
 			if (_whis.playerName.equals(owner.name)) {
 				ArrayList<String> parameter = MyFunction.getTextBetween(txt);
 				owner.choiceXtype = Integer.parseInt(parameter.get(0));
@@ -457,8 +464,9 @@ class Card {
 				owner.choiceXname = parameter.get(5);
 				if (owner.choiceXname.equals(" "))
 					owner.choiceXname = "";
-				owner.setPlayerGameStatus(MyFunction.PlayerStatus.digX);
+				owner.setPlayerGameStatus(MyFunction.PlayerStatus.searchX);
 				owner.sendChoiceSearch(false, _whis.name + " ищет в колоде.");
+				owner.server.sendMessage("You search "+owner.choiceXtype+","+owner.choiceXcolor+","+owner.choiceXcreatureType+","+owner.choiceXcost+","+owner.choiceXcostExactly+","+owner.choiceXname);
 				System.out.println("pause");
 				synchronized (owner.cretureDiedMonitor) {
 					try {

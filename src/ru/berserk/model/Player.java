@@ -64,18 +64,18 @@ public class Player extends Card {
     }
 
     void removeCreatureFromList(Creature c) throws IOException {
-        owner.sendBoth("#DieCreature(" + playerName + "," + getNumberOfCreature(c) + ")");
+        owner.sendBoth("#DieCreature(" + playerName + "," + c.id + ")");
         creatures.remove(c);
     }
 
     void addCardToHand(Card c) throws IOException {
         cardInHand.add(c);
-        owner.server.sendMessage("#AddCardToHand(" + c.name + ","+c.id+")");
+        owner.server.sendMessage("#AddCardToHand(" + playerName + "," + c.name + ","+c.id+")");
     }
 
     void addCardToGraveyard(Card c) throws IOException {
         graveyard.add(c);
-        owner.sendBoth("#AddCardToGraveyard(" + playerName + "," + c.name + ")");
+        owner.sendBoth("#AddCardToGraveyard(" + playerName + "," + c.name + "," + c.id + ")");
     }
 
     void removeCardFromGraveyard(Card c) throws IOException {
@@ -122,10 +122,10 @@ public class Player extends Card {
         numberPlayer = _n;
     }
 
-    Player(Gamer _owner, Card _card, Deck _deck, String _playerName) {
+    
+    Player(Gamer _owner, Card _card, String _playerName) {
         super(0, _card.name, _card.creatureType, 1, 0, _card.targetType, _card.tapTargetType, _card.text, 0, _card.hp);
         owner = _owner;
-        deck = _deck;
         isTapped = false;
         playerName = _playerName;
         cardInHand = new ArrayList<>();
@@ -137,10 +137,9 @@ public class Player extends Card {
         equpiment[3] = null;
     }
 
-    Player(Gamer _owner, Deck _deck, String _heroName, String _playerName, int _hp) {
+    Player(Gamer _owner, String _heroName, String _playerName, int _hp) {
         super(0, _heroName, "", 1, 0, 0, 0, "", 0, _hp);
         owner = _owner;
-        deck = _deck;
         isTapped = false;
         playerName = _playerName;
         cardInHand = new ArrayList<>();
@@ -447,9 +446,9 @@ public class Player extends Card {
         untappedCoin = totalCoin;
 
         //TODO tap() and untap()
-        if (equpiment[0] != null) equpiment[0].isTapped = false;
-        if (equpiment[1] != null) equpiment[1].isTapped = false;
-        if (equpiment[2] != null) equpiment[2].isTapped = false;
+        if (equpiment[0] != null) equpiment[0].untap();
+        if (equpiment[1] != null) equpiment[1].untap();
+        if (equpiment[2] != null) equpiment[2].untap();
 
         for (int i = creatures.size() - 1; i >= 0; i--) {
             //untap
@@ -503,7 +502,7 @@ public class Player extends Card {
 
         if (untappedCoin >= effectiveCost) {
             untappedCoin -= effectiveCost;
-            owner.printToView(0, "Розыгрышь карты " + _card.name + ".");
+           //owner.printToView(0, "Розыгрышь карты " + _card.name + ".");
             //remove from hand
             removeCardFromHand(num);
             //put on table or cast spell
@@ -536,21 +535,21 @@ public class Player extends Card {
                 owner.board.addCreatureToBoard(_card, this);
             } else if (_card.type == 3) {
                 //TODO Equpiment command server
-                owner.sendBoth("#PutEquipToBoard(" + playerName + "," + _card.name + ")");
+                owner.sendBoth("#PutEquipToBoard(" + playerName + "," + _card.name + ","+ _card.id + ")");
                 if (_card.creatureType.equals("Броня")) {
-                    if (this.equpiment[0] != null) addCardToGraveyard(this.equpiment[0]);
+                    if (this.equpiment[0] != null) removeEqupiment(this.equpiment[0]);
                     this.equpiment[0] = new Equpiment(_card, this);
                 } else if (_card.creatureType.equals("Амулет")) {
-                    if (this.equpiment[1] != null) addCardToGraveyard(this.equpiment[1]);
+                    if (this.equpiment[1] != null) removeEqupiment(this.equpiment[1]);
                     this.equpiment[1] = new Equpiment(_card, this);
                 } else if (_card.creatureType.equals("Оружие")) {
-                    if (this.equpiment[2] != null) addCardToGraveyard(this.equpiment[2]);
+                    if (this.equpiment[2] != null) removeEqupiment(this.equpiment[2]);
                     this.equpiment[2] = new Equpiment(_card, this);
                 }
             } else if (_card.type == 4) {
                 //Event is equip with n=3
-                owner.sendBoth("#PutEquipToBoard(" + playerName + "," + _card.name + ")");
-                if (this.equpiment[3] != null) addCardToGraveyard(this.equpiment[3]);
+                owner.sendBoth("#PutEquipToBoard(" + playerName + "," + _card.name + "," + _card.id + ")");
+                if (this.equpiment[3] != null) removeEqupiment(this.equpiment[3]);
                 this.equpiment[3] = new Equpiment(_card, this);
             }
 
@@ -585,8 +584,8 @@ public class Player extends Card {
                 //Плащ исхара
                 if (dmg != 1)
                     owner.printToView(0, "Браслет подчинения свел атаку к 1.");
+                	owner.opponent.printToView(0, "Браслет подчинения свел атаку к 1.");
                 dmg = 1;
-
             }
         }
         //equpiment[0]
@@ -597,9 +596,12 @@ public class Player extends Card {
                 dmg -= equpiment[0].hp;
                 equpiment[0].hp -= tmp;
                 if (dmg < 0) dmg = 0;
+                //TODO Send equip effect
+                owner.sendBoth("#AddEquipEffectHP("+owner.player.playerName+","+"0"+","+equpiment[0].hp+")");
                 owner.printToView(0, "Плащ Исхара предотвратил " + (tmp - dmg) + " урона.");
+                owner.opponent.printToView(0, "Плащ Исхара предотвратил " + (tmp - dmg) + " урона.");
                 if (equpiment[0].hp <= 0) {
-                    addCardToGraveyard(equpiment[0]);
+                    removeEqupiment(equpiment[0]);
                     equpiment[0] = null;
                 }
             }
@@ -665,5 +667,10 @@ public class Player extends Card {
     public void untap() throws IOException {
         owner.sendBoth("#TapPlayer(" + playerName + ",0)");
         isTapped = false;
+    }
+
+    public void removeEqupiment(Equpiment eq) throws IOException{
+    	owner.sendBoth("#RemoveEquip("+playerName+","+eq.id+")");
+    	addCardToGraveyard(eq);
     }
 }

@@ -7,6 +7,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class Main {
     static final int COIN_START = 0;
     static final String CLIENT_VERSION = "0.02";
+    static final String SERVER_VERSION = "0.0304";
     public static int randomNum = ThreadLocalRandom.current().nextInt(100, 999 + 1);
     private static ArrayList<String> names = new ArrayList<>();
     private static ArrayList<Gamer> freePlayer = new ArrayList<>();
@@ -34,13 +35,12 @@ public class Main {
                     System.out.println("Pair found: " + g.name + "/" + Main.freePlayer.get(i).name);
                     g.opponent = Main.freePlayer.get(i);
                     g.opponent.opponent = g;
-                    //opponent.gameQueue = gameQueue;
                     Main.freePlayer.remove(g);
                     Main.freePlayer.remove(g.opponent);
-                    g.server.sendMessage("Your opponent " + g.opponent.name + ", play " + g.opponent.deckList.get(0) + " hero.");
-        			g.server.sendMessage("$OPPONENTCONNECTED(" + g.opponent.name + "," + g.opponent.deckList.get(0) + "," + COIN_START + ")");
-        			g.opponent.server.sendMessage("Your opponent " + g.name + ", play " + g.deckList.get(0) + " hero.");
-         			g.opponent.server.sendMessage("$OPPONENTCONNECTED(" + g.name + "," + g.deckList.get(0) + "," + COIN_START + ")");
+                    g.server.sendMessage("Your opponent " + g.opponent.name + ", play " + g.opponent.player.deck.cards.get(0).name + " hero.");
+        			g.server.sendMessage("$OPPONENTCONNECTED(" + g.opponent.name + "," + g.opponent.player.deck.cards.get(0).name + "," + COIN_START + ")");
+        			g.opponent.server.sendMessage("Your opponent " + g.name + ", play " + g.player.deck.cards.get(0).name + " hero.");
+         			g.opponent.server.sendMessage("$OPPONENTCONNECTED(" + g.name + "," + g.player.deck.cards.get(0).name + "," + COIN_START + ")");
          		
                     return true;
                 }

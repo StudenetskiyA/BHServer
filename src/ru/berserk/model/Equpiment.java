@@ -8,14 +8,21 @@ public class Equpiment extends Card {
     public boolean isTapped;
     public Player owner;
 
+    
     public Equpiment(Card _card, Player _owner) {
         super(_card.cost, _card.name, _card.creatureType, _card.color, _card.type, _card.targetType, _card.tapTargetType, _card.text, _card.power, _card.hp);
         isTapped = false;
+        id = _card.id;
         owner = _owner;
     }
 
-    void tap() {
+    void tap() throws IOException {
         isTapped = true;
+        owner.owner.sendBoth("#TapEqupiment("+owner.owner.player.playerName+","+id+",1)");
+    }
+    void untap() throws IOException {
+        isTapped = true;
+        owner.owner.sendBoth("#TapEqupiment("+owner.owner.player.playerName+","+id+",0)");
     }
 
     public void tapNoTargetAbility() throws IOException {

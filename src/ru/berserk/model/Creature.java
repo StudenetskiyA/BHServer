@@ -80,7 +80,7 @@ public class Creature extends Card {
         public void EOT() throws IOException {
             upkeepPlayed = false;
             turnToDie--;
-            bonusPowerUEOT = 0;
+            looseBonusPowerUEOT();
             ArrayList<TemporaryTextEffect> efCopy = new ArrayList<>(temporaryTextEffects);
             ListIterator<TemporaryTextEffect> temp = efCopy.listIterator();
             while (temp.hasNext()) {
@@ -180,6 +180,10 @@ public class Creature extends Card {
         void takeBonusPowerUEOT(int n) throws IOException {
             bonusPowerUEOT += n;
             owner.owner.sendBoth("#TakeCreatureIdEffect("+ whis.id + "," + MyFunction.Effect.bonusPowerUEOT.getValue() + "," + n + ")");
+        }
+        void looseBonusPowerUEOT() throws IOException {
+            bonusPowerUEOT = 0;
+            owner.owner.sendBoth("#LooseCreatureIdEffect("+ whis.id + "," + MyFunction.Effect.bonusPowerUEOT.getValue() + ")");
         }
 
         void takeControlChange() throws IOException {
@@ -317,6 +321,7 @@ public class Creature extends Card {
         super(_card.cost, _card.name, _card.creatureType, _card.color, _card.type, _card.targetType, _card.tapTargetType, _card.text, _card.power, _card.hp);
         image = _card.image;
         cost = _card.cost;
+        id= _card.id;
         isTapped = false;
         isSummonedJust = true;
         name = _card.name;
@@ -330,12 +335,12 @@ public class Creature extends Card {
 
     void tapCreature() throws IOException {
         isTapped = true;
-        owner.owner.sendBoth("#TapCreature(" + owner.playerName + "," + owner.getNumberOfCreature(this) + ",1)");
+        owner.owner.sendBoth("#TapCreature(" + owner.playerName + "," + this.id + ",1)");
     }
 
     void untapCreature() throws IOException {
         isTapped = false;
-        owner.owner.sendBoth("#TapCreature(" + owner.playerName + "," + owner.getNumberOfCreature(this) + ",0)");
+        owner.owner.sendBoth("#TapCreature(" + owner.playerName + "," + this.id+ ",0)");
     }
 
     private ArrayList<Creature> canAnyoneBlock(Creature target) {
@@ -571,14 +576,16 @@ public class Creature extends Card {
         //add to opponent
         Creature tmp = new Creature(this);
         owner.owner.opponent.board.addExistCreatureToBoard(tmp,owner.owner.opponent.player);//without cry
+        //It send AddCreatureToBoard
         tmp.owner = owner.owner.opponent.player;
+       // System.out.println("True owner  = "+tmp.trueOwner.playerName);
+       // System.out.println("Owner  = "+tmp.owner.playerName);
         tmp.effects = new Effects(tmp,this.effects);
         tmp.effects.battlecryPlayed=true;
         tmp.isSummonedJust=true;
         //Send message
-        owner.owner.sendBoth("#ChangeControll(" + owner.playerName + "," + owner.getNumberOfCreature(this) +")");
+        owner.owner.sendBoth("#ChangeControll(" + owner.playerName + "," + this.id +")");
         tmp.effects.takeControlChange();
-        
         //remove from my board
         removeCreatureFromPlayerBoard();
     }
@@ -589,8 +596,8 @@ public class Creature extends Card {
     }
 
     void returnToHand() throws IOException {
-        owner.owner.sendBoth("#ReturnToHand(" + owner.playerName + "," + owner.getNumberOfCreature(this) +")");
-        System.out.println("True owner to return = "+trueOwner.playerName);
+        owner.owner.sendBoth("#ReturnToHand(" + this.id +")");
+       // System.out.println("True owner to return = "+trueOwner.playerName);
         trueOwner.addCardToHand(this);
         removeCreatureFromPlayerBoard();
     }

@@ -233,9 +233,9 @@ public class ResponseClientMessage extends Thread {
                 gamer.printToView(0, "Вы ищете в колоде, но ничего подходящего не находите.");
                 gamer.opponent.printToView(0, "Противник ищет в колоде, но ничего подходящего не находит.");
             } else {
-                Card card = gamer.player.deck.searchCard(parameter.get(1));
+                Card card = player.deck.searchCard(parameter.get(1));
                 //TODO Check exist card and may it be founded. Player may lie.
-                gamer.player.drawSpecialCard(card);
+                player.drawSpecialCard(card);
                 gamer.printToView(0, "Вы находите в колоде " + card.name + ".");
                 gamer.opponent.printToView(0, "Противник находит в колоде " + parameter.get(1) + ".");
             }
