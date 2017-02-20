@@ -93,15 +93,6 @@ public class Player extends Card {
         cardInHand.remove(n);
     }
 
-    Creature getCreatureById(String _id){
-    	for (int i=0;i<creatures.size();i++){
-    		if (creatures.get(i).id.equals(_id)) return creatures.get(i);
-    	}
-    	for (int i=0;i<owner.opponent.player.creatures.size();i++){
-    		if (owner.opponent.player.creatures.get(i).id.equals(_id)) return owner.opponent.player.creatures.get(i);
-    	}
-    	return null;
-    }
     
     int getNumberOfCreature(Creature _cr) {
     	for (int i=0;i<creatures.size();i++){
@@ -672,5 +663,14 @@ public class Player extends Card {
     public void removeEqupiment(Equpiment eq) throws IOException{
     	owner.sendBoth("#RemoveEquip("+playerName+","+eq.id+")");
     	addCardToGraveyard(eq);
+    }
+
+    public int getNotNullEqupiment(){
+    	//Event on other method
+    	int count=0;
+    	for (int i=0;i<equpiment.length;i++){
+    		if (equpiment[i]!=null) count++; 
+    	}
+    	return count;
     }
 }

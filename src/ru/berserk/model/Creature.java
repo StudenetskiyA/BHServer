@@ -541,6 +541,12 @@ public class Creature extends Card {
         Card.ability(owner.owner, this, this.owner, this, null, txt);//Only here 3th parametr=1th
     }
 
+    void battlecryEquipTarget(Equpiment _eq) throws IOException {
+        String txt = this.text.substring(this.text.indexOf("Наймт:") + "Наймт:".length() + 1, this.text.indexOf(".", this.text.indexOf("Наймт:")) + 1);
+        System.out.println("НаймтЭ: " + txt);
+        Card.ability(owner.owner, this, owner, _eq, txt);
+    }
+    
     void battlecryTarget(Creature _cr, Player _pl) throws IOException {
         String txt = this.text.substring(this.text.indexOf("Наймт:") + "Наймт:".length() + 1, this.text.indexOf(".", this.text.indexOf("Наймт:")) + 1);
         System.out.println("Наймт: " + txt);

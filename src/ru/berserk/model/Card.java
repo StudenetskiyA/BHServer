@@ -315,18 +315,25 @@ class Card {
 			return new Card(7, name, "", 1, 1, 0, 0, "Противник выбирает существо, оно переходит под ваш контроль.", 0,0);
 		case "Дурные советы":
 			return new Card(5, name, "", 1, 1, 0, 0, "Противник выбирает существо по стоимости, оно переходит под ваш контроль, стоимость не больше 3.", 0,0);
-	    default:
+		case "Брат по оружию":
+              return new Card(3, name, "Инквизитор", 6, 2, 21, 0, "Наймт: уничтожить выбранную экипировку.", 3, 3);
+		default:
 			System.out.println("Ошибка - Неопознанная карта:" + name);
 			return null;
 		}
 	}
 
+	static void ability(Gamer owner, Card _who, Player _whis, Equpiment _eq, String txt) throws IOException {
+		if (txt.contains("Уничтожить выбранную экипировку.")) {
+			_eq.owner.removeEqupiment(_eq);
+		}
+	}
+	
 	static void ability(Gamer owner, Card _who, Player _whis, Creature _cr, Player _pl, String txt) throws IOException {
 		// Super function! Do all what do cards text!
 		// Which Card player(_who), who player(_whis), on what creature(_cr, may
 		// null), on what player(_pl, may null), text to play(txt)
 		if (txt.contains("Закрыться.")) {// Only here - _cr=_who to get access
-											// to creature
 			_cr.tapCreature();
 			owner.printToView(0, _cr.name + " закрывается.");
 		}
@@ -421,18 +428,14 @@ class Card {
 				owner.player.deck.suffleDeck(owner.sufflingConst);
 			}
 		}
-		if (txt.contains("Уничтожьте по стоимости "))
-
-		{
+		if (txt.contains("Уничтожьте по стоимости ")) {
 			int dmg = MyFunction.getNumericAfterText(txt, "Уничтожьте по стоимости ");
 			if (_cr.getCost(_cr.owner) <= dmg) {
 				owner.printToView(0, _who.name + " уничтожает " + _cr.name + ".");
 				_cr.die();
 			}
 		}
-		if (txt.contains("Уничтожьте каждое по стоимости "))
-
-		{
+		if (txt.contains("Уничтожьте каждое по стоимости ")) {
 			int dmg = MyFunction.getNumericAfterText(txt, "Уничтожьте каждое по стоимости ");
 			ListIterator<Creature> temp = _whis.owner.opponent.player.creatures.listIterator();
 			while (temp.hasNext()) {

@@ -14,6 +14,29 @@ public class Board {
     public Board() {
     }
 
+    public static Creature getCreatureById(Player _pl, String _id){
+    	for (int i=0;i<_pl.creatures.size();i++){
+    		if (_pl.creatures.get(i).id.equals(_id)) return _pl.creatures.get(i);
+    	}
+    	for (int i=0;i<_pl.owner.opponent.player.creatures.size();i++){
+    		if (_pl.owner.opponent.player.creatures.get(i).id.equals(_id)) return _pl.owner.opponent.player.creatures.get(i);
+    	}
+    	return null;
+    }
+    
+    public static Equpiment getEqupimentByID(Player _pl, String id){
+        for (int i=0;i<_pl.equpiment.length;i++){
+            if (_pl.equpiment[i]!=null && _pl.equpiment[i].id.equals(id))
+                return _pl.equpiment[i];
+        }
+        for (int i=0;i<_pl.owner.opponent.player.equpiment.length;i++){
+            if (_pl.owner.opponent.player.equpiment[i]!=null && _pl.owner.opponent.player.equpiment[i].id.equals(id))
+                return _pl.owner.opponent.player.equpiment[i];
+        }
+        System.out.println("Not found equpiment by ID");
+        return null;
+    }
+    
     void addExistCreatureToBoard(Creature _creature, Player _player) throws IOException {
         addCreatureToBoard(_creature,_player,true, _creature);
     }

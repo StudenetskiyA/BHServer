@@ -157,7 +157,7 @@ public class MyFunction {
         }
     }
 
-    enum Target {myPlayer,myCreature,enemyPlayer,enemyCreature}
+    enum Target {myPlayer,myCreature,enemyPlayer,enemyCreature,myEquip,enemyEquip,myEvent,enemyEvent}
 
     enum PlayerStatus {
         MyTurn(1), EnemyTurn(2), IChoiceBlocker(3), EnemyChoiceBlocker(4), EnemyChoiceTarget(5), MuliganPhase(6), waitingForConnection(7),
@@ -237,6 +237,10 @@ public class MyFunction {
         }
         if (MyFunction.canTarget(MyFunction.Target.enemyPlayer,cr.targetType)) canTarget=true;//Both players always stay on board
         if (MyFunction.canTarget(MyFunction.Target.myPlayer,cr.targetType)) canTarget=true;
+        
+        if (pl.getNotNullEqupiment()>0 && MyFunction.canTarget(MyFunction.Target.myEquip,cr.targetType)) canTarget = true;
+        if (pl.owner.opponent.player.getNotNullEqupiment()>0 && MyFunction.canTarget(MyFunction.Target.enemyEquip,cr.targetType)) canTarget = true;
+        
         return canTarget;
     }
 
@@ -244,6 +248,8 @@ public class MyFunction {
         //10 my hero or my creature, not self
         //12 my creature, not self
         //13 any creature, not self
+    	//21 any equip
+    	//22 any event
         if (target==Target.myPlayer)
         {
             if (targetType==2 || targetType==3 || targetType==9 || targetType==10 ) return true;
@@ -259,6 +265,14 @@ public class MyFunction {
         else if (target==Target.enemyCreature)
         {
             if (targetType==1 || targetType==3 || targetType==4 || targetType==6) return true;
+        }
+        else if (target==Target.myEquip || target==Target.enemyEquip)
+        {
+            if (targetType==21) return true;
+        }
+        else if (target==Target.myEvent || target==Target.enemyEvent)
+        {
+            if (targetType==22) return true;
         }
         return false;
     }
