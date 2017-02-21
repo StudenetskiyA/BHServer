@@ -255,6 +255,10 @@ public class MyFunction {
         if (pl.getNotNullEqupiment()>0 && MyFunction.canTarget(MyFunction.Target.myEquip,cr.targetType)) canTarget = true;
         if (pl.owner.opponent.player.getNotNullEqupiment()>0 && MyFunction.canTarget(MyFunction.Target.enemyEquip,cr.targetType)) canTarget = true;
         
+        if (pl.equpiment[3]!=null && MyFunction.canTarget(MyFunction.Target.myEvent,cr.targetType)) canTarget = true;
+        if (pl.owner.opponent.player.equpiment[3]!=null && MyFunction.canTarget(MyFunction.Target.enemyEvent,cr.targetType)) canTarget = true;
+        
+        
         return canTarget;
     }
 
