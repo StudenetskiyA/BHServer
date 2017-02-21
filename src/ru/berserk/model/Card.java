@@ -155,9 +155,9 @@ class Card {
 		case "Пылающий исполин":
 			return new Card(6, name, "Орк", 2, 2, 0, 0, "Направленный удар. Статичный эффект.", 6, 6);
 		case "Огонь прародителя":
-			return new Card(7, name, "", 3, 1, 3, 0, "Ранить выбранное существо на 8.", 0, 0);
+			return new Card(7, name, "", 3, 1, 3, 0, "Ранить персонажа на 8.", 0, 0);
 		case "Плетение огня":
-			return new Card(3, name, "", 3, 1, 1, 0, "Ранить выбранное существо на 4.", 0, 0);
+			return new Card(3, name, "", 3, 1, 3, 0, "Ранить персонажа на 4.", 0, 0);
 		case "Рубака клана":
 			return new Card(3, name, "Орк", 2, 2, 0, 0, "Направленный удар.", 5, 3);
 		case "Багатур":
@@ -264,7 +264,7 @@ class Card {
 		case "Полевица":
 			return new Card(4, name, "", 1, 2, 0, 0, "Гибель: Взять карт 2.", 2, 3);
 		case "Смайта":
-			return new Card(4, name, "", 6, 2, 3, 0, "Гибельт: Ранить выбранное существо или героя на 2.", 4, 3);
+			return new Card(4, name, "", 6, 2, 3, 0, "Гибельт: Ранить персонажа на 2.", 4, 3);
 		case "Вестник смерти":
 			return new Card(1, name, "Слуа", 5, 2, 99, 0, "Гибельт: Сбросьте карту.", 3, 3);
 		case "Падальщик пустоши":// fix
@@ -319,6 +319,8 @@ class Card {
               return new Card(3, name, "Инквизитор", 6, 2, 21, 0, "Наймт: Уничтожить выбранную экипировку.", 3, 3);
 		case "Сдерживающий":
                return new Card(3, name, "Драконид", 6, 2, 22, 0, "Наймт: Уничтожить выбранную экипировку.", 5, 5);
+		case "Кутила":
+              return new Card(10, name, "Пират", 6, 2, 0, 0, "Статичный эффект.", 6, 6);
          default:
 			System.out.println("Ошибка - Неопознанная карта:" + name);
 			return null;
@@ -383,8 +385,7 @@ class Card {
 				owner.opponent.printToView(0, _who.name + " закрывает " + _cr.name);
 			}
 		}
-		if (txt.contains("Получить щит ББ.")) {// Only here - _cr=_who to get
-												// access to creature
+		if (txt.contains("Получить щит ББ.")) {
 			_whis.effect.takeBBShield(true);
 		}
 		if (txt.contains("Лики-абилка.")) {// Only for player, who called it.
@@ -507,28 +508,20 @@ class Card {
 				System.out.println("resume");
 			}
 		}
-		if (txt.contains("Получает к характеристикам + "))
-
-		{
+		if (txt.contains("Получает к характеристикам + "))	{
 			int dmg = MyFunction.getNumericAfterText(txt, "Получает к характеристикам + ");
 			_cr.effects.takeBonusTougness(dmg);
 			_cr.effects.takeBonusPower(dmg);
 		}
-		if (txt.contains("Выбранное существо до конца хода получает к атаке + "))
-
-		{
+		if (txt.contains("Выбранное существо до конца хода получает к атаке + ")) {
 			int dmg = MyFunction.getNumericAfterText(txt, "Выбранное существо до конца хода получает к атаке + ");
 			_cr.effects.takeBonusPowerUEOT(dmg);
 		}
-		if (txt.contains("Получает к броне + "))
-
-		{
+		if (txt.contains("Получает к броне + ")) {
 			int dmg = MyFunction.getNumericAfterText(txt, "Получает к броне + ");
 			_cr.effects.takeBonusArmor(dmg);
 		}
-		if (txt.contains("Получает +Х к удару и Броню Х, где Х - число других ваших существ."))
-
-		{
+		if (txt.contains("Получает +Х к удару и Броню Х, где Х - число других ваших существ."))	{
 			int dmg = _cr.owner.creatures.size() - 1;
 			if (dmg > 0) {
 				_cr.effects.takeBonusPower(dmg);
@@ -541,10 +534,8 @@ class Card {
 			int dmg = MyFunction.getNumericAfterText(txt, "Получает к атаке + ");
 			_cr.effects.takeBonusPower(dmg);
 		}
-		if (txt.contains("Излечить выбранное существо или героя на "))
-
-		{
-			int dmg = MyFunction.getNumericAfterText(txt, "Излечить выбранное существо или героя на ");
+		if (txt.contains("Излечить персонажа на "))	{
+			int dmg = MyFunction.getNumericAfterText(txt, "Излечить персонажа на ");
 			if (_cr != null) {
 				owner.printToView(0, _who.name + " излечивает " + _cr.name + " на " + dmg + ".");
 				_cr.heal(dmg);
@@ -553,19 +544,15 @@ class Card {
 				_pl.heal(dmg);
 			}
 		}
-		if (txt.contains("Ранить на половину жизней выбранное существо"))
-
-		{
+		if (txt.contains("Ранить на половину жизней выбранное существо")) {
 			if (_cr != null) {
 				int dmg = (_cr.getTougness() - _cr.damage) / 2;
 				owner.printToView(0, _who.name + " ранит " + _cr.name + " на " + dmg + ".");
 				_cr.takeDamage(dmg, _who, Creature.DamageSource.ability);
 			}
 		}
-		if (txt.contains("Ранить выбранное существо или героя на "))
-
-		{
-			int dmg = MyFunction.getNumericAfterText(txt, "Ранить выбранное существо или героя на ");
+		if (txt.contains("Ранить персонажа на ")) {
+			int dmg = MyFunction.getNumericAfterText(txt, "Ранить персонажа на ");
 			if (_cr != null) {
 				owner.printToView(0, _who.name + " ранит " + _cr.name + " на " + dmg + ".");
 				_cr.takeDamage(dmg, _who, Creature.DamageSource.ability);
@@ -584,9 +571,7 @@ class Card {
 				_pl.takeDamage(dmg);
 			}
 		}
-		if (txt.contains("Ранить выбранного героя на "))
-
-		{
+		if (txt.contains("Ранить выбранного героя на ")) {
 			int dmg = MyFunction.getNumericAfterText(txt, "Ранить выбранного героя на ");
 			owner.printToView(0, _pl.playerName + " получил " + dmg + " урона.");
 			_pl.takeDamage(dmg);
@@ -774,8 +759,6 @@ class Card {
 				Creature tmp = temp.next();
 				tmp.takeDamage(dmg, _who, Creature.DamageSource.ability);
 			}
-			// _cr. owner.printToView(0, _who.name + " ранит всех существ
-			// противника на " + dmg + ".");
 		}
 		if (txt.contains(("Ранить каждое существо на "))) {
 			int dmg = MyFunction.getNumericAfterText(txt, "Ранить каждое существо на ");
@@ -790,8 +773,6 @@ class Card {
 				Creature tmp = temp2.next();
 				tmp.takeDamage(dmg, _who, Creature.DamageSource.ability);
 			}
-			// owner.printToView(0, _who.name + " ранит всех существ на " + dmg
-			// + ".");
 		}
 		if (txt.contains(("Каждое другое существо погибает в конце хода противника."))) {
 			// TODO Fix it with deathrattle
@@ -804,17 +785,13 @@ class Card {
 			}
 			owner.printToView(0, _who.name + " чумит весь стол!");
 		}
-		if (txt.contains("Взять карт "))
-
-		{
+		if (txt.contains("Взять карт ")) {
 			int dmg = MyFunction.getNumericAfterText(txt, "Взять карт ");
 			owner.printToView(0, _who.name + " берет " + dmg + " карт.");
 			for (int i = 0; i < dmg; i++)
 				_whis.drawCard();
 		}
-		if (txt.contains("Если у соперника больше существ, чем у вас, взять еще карт "))
-
-		{
+		if (txt.contains("Если у соперника больше существ, чем у вас, взять еще карт ")) {
 			int dmg = MyFunction.getNumericAfterText(txt,
 					"Если у соперника больше существ, чем у вас, взять еще карт ");
 			int n1 = _whis.creatures.size();
@@ -865,7 +842,10 @@ class Card {
 		if (name.equals("Трюкач")) {
 			effectiveCost += pl.cardInHand.size() - 1;
 		}
-
+		if (name.equals("Кутила")) {
+            effectiveCost -= pl.cardInHand.size();
+        }
+        
 		return effectiveCost;
 	}
 }
