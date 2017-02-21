@@ -56,7 +56,7 @@ public class ResponseClientMessage extends Thread {
             dontDoQueue = true;
         } else if (fromServer.startsWith("$TAPNOTARGET(")) {
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
-            player.creatures.get(Integer.parseInt(parameter.get(1))).tapNoTargetAbility();
+            Board.getCreatureById(player, parameter.get(1)).tapNoTargetAbility();
         } else if (fromServer.startsWith("$DISCARD(")) {
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
             int n = Integer.parseInt(parameter.get(1));
@@ -98,55 +98,54 @@ public class ResponseClientMessage extends Thread {
                 death = true;
                 cr = new Creature(MyFunction.ActivatedAbility.creature);
             } else {
-                cr = player.creatures.get(Integer.parseInt(parameter.get(1)));
+                cr =  Board.getCreatureById(player, parameter.get(1));
             }
-            Player tmpPlayer = (parameter.get(2).equals("1")) ? gamer.opponent.player : player;
-            if (parameter.get(3).equals("-1")) {
+           if (parameter.get(3).equals("-1")) {
+        	   Player tmpPlayer = (parameter.get(2).equals("1")) ? gamer.opponent.player : player;
                 if (fromServer.contains("$CRYTARGET("))
                     if (death) cr.deathratle(null, tmpPlayer);
                     else cr.battlecryTarget(null, tmpPlayer);
-                else
-                    cr.tapTargetAbility(null, tmpPlayer);
+                else cr.tapTargetAbility(null, tmpPlayer);
             } else {
-                int died = MyFunction.getNumDiedButNotRemovedYet(tmpPlayer.creatures);
-                if (tmpPlayer.creatures.size() - 1 >= Integer.parseInt(parameter.get(3)) + died) {
+            	Creature t = Board.getCreatureById(player, parameter.get(3));
                     if (fromServer.contains("$CRYTARGET("))
-                        if (death)
-                            cr.deathratle(tmpPlayer.creatures.get(Integer.parseInt(parameter.get(3))), null);
-                        else
-                            cr.battlecryTarget(tmpPlayer.creatures.get(Integer.parseInt(parameter.get(3))), null);
-                    else
-                        cr.tapTargetAbility(tmpPlayer.creatures.get(Integer.parseInt(parameter.get(3))), null);
-                }
+                        if (death) cr.deathratle(t, null);
+                        else cr.battlecryTarget(t, null);
+                    else cr.tapTargetAbility(t, null);
             }
             dontDoQueue = true;
             freeMonitor = true;
         } else if (fromServer.startsWith("$EQUIPTARGET(")) {
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
             gamer.status = PlayerStatus.MyTurn;
-            int equip = Integer.parseInt(parameter.get(1));
+            int equip = Integer.parseInt(parameter.get(1));//ID?
+            Creature t = Board.getCreatureById(player, parameter.get(3));
             if (parameter.get(2).equals("1")) {
                 if (parameter.get(3).equals("-1"))
                     player.equpiment[equip].tapTargetAbility(null, gamer.opponent.player);
                 else
-                    player.equpiment[equip].tapTargetAbility(gamer.opponent.player.creatures.get(Integer.parseInt(parameter.get(3))), null);
+                    player.equpiment[equip].tapTargetAbility(t, null);
             } else {
                 if (parameter.get(3).equals("-1"))
                     player.equpiment[equip].tapTargetAbility(null, player);
                 else
-                    player.equpiment[equip].tapTargetAbility(player.creatures.get(Integer.parseInt(parameter.get(3))), null);
+                    player.equpiment[equip].tapTargetAbility(t, null);
             }
         } else if (fromServer.startsWith("$HEROTARGET(")) {
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
             player.untappedCoin -= Integer.parseInt(parameter.get(3));
-            if (parameter.get(1).equals("1")) {
-                if (parameter.get(2).equals("-1")) player.ability(null, gamer.opponent.player);
-                else player.ability(gamer.opponent.player.creatures.get(Integer.parseInt(parameter.get(2))), null);
-            } else {
-                if (parameter.get(2).equals("-1")) player.ability(null, player);
-                else player.ability(player.creatures.get(Integer.parseInt(parameter.get(2))), null);
-            }
-            dontDoQueue = true;
+            Player who = (parameter.get(1).equals("0"))? player:gamer.opponent.player;
+                if (parameter.get(2).equals("-1")) who.ability(null, gamer.opponent.player);
+                else {
+                	Creature t = Board.getCreatureById(player, parameter.get(2));
+                	who.ability(t, null);
+                }
+                if (parameter.get(2).equals("-1")) who.ability(null, player);
+                else {
+                	Creature t = Board.getCreatureById(player, parameter.get(2));
+                	who.ability(t, null);
+                }
+             dontDoQueue = true;
         } else if (fromServer.startsWith("$HERONOTARGET(")) {
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
             player.tap();
