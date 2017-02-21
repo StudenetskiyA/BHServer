@@ -625,16 +625,30 @@ public class Player extends Card {
         }
     }
 
-    void abilityNoTarget() throws IOException {
-        String txt = this.text.substring(this.text.indexOf("ТАП:") + "ТАП:0".length() + 1, this.text.indexOf(".", this.text.indexOf("ТАП:")) + 1);
+    void abilityNoTarget(int n) throws IOException {
+    	String txt="";
+    	if (n==0){
+         txt = this.text.substring(this.text.indexOf("ТАП:") + "ТАП:0".length() + 1, this.text.indexOf(".", this.text.indexOf("ТАП:")) + 1);
         System.out.println("ТАП HERO: " + txt);
+    	}
+    	else {
+    		 txt = this.text.substring(this.text.indexOf("2ТАП:") + "2ТАП:0".length() + 1, this.text.indexOf(".", this.text.indexOf("2ТАП:")) + 1);
+            System.out.println("ТАП2 HERO: " + txt);	
+    	}
         tap();
         Card.ability(owner, this, this, null, null, txt);
     }
 
-    void ability(Creature _cr, Player _pl) throws IOException {
-        String txt = this.text.substring(this.text.indexOf("ТАПТ: ") + "ТАПТ: ".length() + 1, this.text.indexOf(".", this.text.indexOf("ТАПТ: ") + 1));
-        System.out.println("ТАПТ HERO: " + txt);
+    void ability(int n, Creature _cr, Player _pl) throws IOException {
+    	String txt="";
+    	if (n==0){
+        txt = this.text.substring(this.text.indexOf("ТАПТ:") + "ТАПТ: ".length() + 1, this.text.indexOf(".", this.text.indexOf("ТАПТ:") + 1));
+        System.out.println("TAPT HERO: " + txt);
+    	}
+    	else {
+    		 txt = this.text.substring(this.text.indexOf("2ТАПТ:") + "2ТАПТ: ".length() + 1, this.text.indexOf(".", this.text.indexOf("2ТАПТ:") + 1));
+    	        System.out.println("TAPT2 HERO: " + txt);	
+    	}
         tap();
         Card.ability(owner, this, this, _cr, _pl, txt);
     }

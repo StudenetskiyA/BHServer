@@ -131,26 +131,22 @@ public class ResponseClientMessage extends Thread {
                 else
                     player.equpiment[equip].tapTargetAbility(t, null);
             }
-        } else if (fromServer.startsWith("$HEROTARGET(")) {
+        } else if (fromServer.startsWith("$HEROTARGET(")) {//PlayerName,Nability,HalfBoard,CreatureId||-1,cost
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
-            player.untappedCoin -= Integer.parseInt(parameter.get(3));
-            Player who = (parameter.get(1).equals("0"))? player:gamer.opponent.player;
-                if (parameter.get(2).equals("-1")) who.ability(null, gamer.opponent.player);
+            player.untappedCoin -= Integer.parseInt(parameter.get(4));
+            Player who = (parameter.get(2).equals("0"))? player:gamer.opponent.player;
+            int n = Integer.parseInt(parameter.get(1));
+                if (parameter.get(3).equals("-1")) player.ability(n,null, who);
                 else {
-                	Creature t = Board.getCreatureById(player, parameter.get(2));
-                	who.ability(t, null);
-                }
-                if (parameter.get(2).equals("-1")) who.ability(null, player);
-                else {
-                	Creature t = Board.getCreatureById(player, parameter.get(2));
-                	who.ability(t, null);
+                	Creature t = Board.getCreatureById(player, parameter.get(3));
+                	player.ability(n,t, null);
                 }
              dontDoQueue = true;
-        } else if (fromServer.startsWith("$HERONOTARGET(")) {
+        } else if (fromServer.startsWith("$HERONOTARGET(")) {//PlayerName,Nability,cost
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
             player.tap();
-            player.untappedCoin -= Integer.parseInt(parameter.get(1));
-            player.abilityNoTarget();
+            player.untappedCoin -= Integer.parseInt(parameter.get(2));
+            player.abilityNoTarget(Integer.parseInt(parameter.get(1)));
         } else if (fromServer.startsWith("$BLOCKER(")) {
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
 
