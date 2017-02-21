@@ -89,11 +89,10 @@ public class Player extends Card {
     }
 
     void removeCardFromHand(int n) throws IOException {
-    	 owner.sendBoth("#RemoveCardFromHandById(" + playerName + "," + cardInHand.get(n).id + ")");
+    	owner.sendBoth("#RemoveCardFromHandById(" + playerName + "," + cardInHand.get(n).id + ")");
         cardInHand.remove(n);
     }
 
-    
     int getNumberOfCreature(Creature _cr) {
     	for (int i=0;i<creatures.size();i++){
     		if (creatures.get(i).id.equals(_cr.id)) return i;
@@ -112,7 +111,6 @@ public class Player extends Card {
     void setNumberPlayer(int _n) {
         numberPlayer = _n;
     }
-
     
     Player(Gamer _owner, Card _card, String _playerName) {
         super(0, _card.name, _card.creatureType, 1, 0, _card.targetType, _card.tapTargetType, _card.text, 0, _card.hp);
@@ -436,7 +434,6 @@ public class Player extends Card {
         //Untap
         untappedCoin = totalCoin;
 
-        //TODO tap() and untap()
         if (equpiment[0] != null) equpiment[0].untap();
         if (equpiment[1] != null) equpiment[1].untap();
         if (equpiment[2] != null) equpiment[2].untap();
@@ -663,6 +660,9 @@ public class Player extends Card {
     public void removeEqupiment(Equpiment eq) throws IOException{
     	owner.sendBoth("#RemoveEquip("+playerName+","+eq.id+")");
     	addCardToGraveyard(eq);
+    	int n =  MyFunction.getEquipNumByType(eq.creatureType);
+    	System.out.println("EQ n= "+n);
+    	this.equpiment[n]=null;
     }
 
     public int getNotNullEqupiment(){

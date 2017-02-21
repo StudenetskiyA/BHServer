@@ -21,7 +21,7 @@ public class Equpiment extends Card {
         owner.owner.sendBoth("#TapEqupiment("+owner.owner.player.playerName+","+id+",1)");
     }
     void untap() throws IOException {
-        isTapped = true;
+        isTapped = false;
         owner.owner.sendBoth("#TapEqupiment("+owner.owner.player.playerName+","+id+",0)");
     }
 

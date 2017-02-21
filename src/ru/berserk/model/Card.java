@@ -316,7 +316,7 @@ class Card {
 		case "Дурные советы":
 			return new Card(5, name, "", 1, 1, 0, 0, "Противник выбирает существо по стоимости, оно переходит под ваш контроль, стоимость не больше 3.", 0,0);
 		case "Брат по оружию":
-              return new Card(3, name, "Инквизитор", 6, 2, 21, 0, "Наймт: уничтожить выбранную экипировку.", 3, 3);
+              return new Card(3, name, "Инквизитор", 6, 2, 21, 0, "Наймт: Уничтожить выбранную экипировку.", 3, 3);
 		default:
 			System.out.println("Ошибка - Неопознанная карта:" + name);
 			return null;
@@ -831,9 +831,7 @@ class Card {
 			owner.printToView(0, _who.name + " стреляет на " + dmg + " по " + _cr.name);
 			_cr.takeDamage(dmg, _who, Creature.DamageSource.scoot, _who.haveRage());
 		}
-		if (txt.contains("Выстрел на "))
-
-		{
+		if (txt.contains("Выстрел на ")) {
 			int dmg = MyFunction.getNumericAfterText(txt, "Выстрел на ");
 			if (_cr != null) {
 				owner.printToView(0, _who.name + " стреляет на " + dmg + " по " + _cr.name);

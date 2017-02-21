@@ -543,7 +543,7 @@ public class Creature extends Card {
 
     void battlecryEquipTarget(Equpiment _eq) throws IOException {
         String txt = this.text.substring(this.text.indexOf("Наймт:") + "Наймт:".length() + 1, this.text.indexOf(".", this.text.indexOf("Наймт:")) + 1);
-        System.out.println("НаймтЭ: " + txt);
+        System.out.println("CryEq: " + txt);
         Card.ability(owner.owner, this, owner, _eq, txt);
     }
     

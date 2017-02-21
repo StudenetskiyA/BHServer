@@ -7,6 +7,20 @@ import java.util.ArrayList;
  */
 public class MyFunction {
 
+	  public static int getEquipNumByType(String creatureType) {
+	        switch(creatureType) {
+	            case "Оружие":
+	                return 2;
+	            case "Броня":
+	                return 0;
+	            case "Амулет":
+	                return 1;
+	            case "Событие":
+	                return 3;
+	        }
+	        return -1;
+	    }
+	
     static class ActivatedAbility {
 
         static Creature creature;

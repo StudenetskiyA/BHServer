@@ -79,12 +79,15 @@ public class ResponseClientMessage extends Thread {
             synchronized (gamer.yesNoChoiceMonitor) {
                 gamer.yesNoChoiceMonitor.notify();
             }
-        } else if ((fromServer.startsWith("$CRYEQUIPTARGET("))) {//CreatureID,NoCreatureTarget
-        	//No creature target. 1 - equip, 2 - event
+        } else if ((fromServer.startsWith("$CRYEQUIPTARGET("))) {//CreatureID,EquipID
         	 ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
              Creature cr = Board.getCreatureById(player, parameter.get(0));
              Equpiment eq = Board.getEqupimentByID(player, parameter.get(1));
+             System.out.println("Eq id = "+eq.id);
              cr.battlecryEquipTarget(eq);
+             dontDoQueue = true;
+             freeMonitor = true;
+             System.out.println("BET complite");
         } else if ((fromServer.startsWith("$CRYTARGET(")) || (fromServer.startsWith("$TAPTARGET("))) {
             // CRYTARGET also for DeathratleTarget and TapTarget
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
