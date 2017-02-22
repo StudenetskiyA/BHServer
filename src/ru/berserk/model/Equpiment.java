@@ -29,19 +29,19 @@ public class Equpiment extends Card {
         String txt = this.text.substring(this.text.indexOf("ТАП:") + "ТАП:".length() + 1, this.text.indexOf(".", this.text.indexOf("ТАП:")) + 1);
         System.out.println("ТАП: " + txt);
         tap();
-        Card.ability(owner.owner,this, owner, null, null, txt);
+        Card.ability(owner.owner,this, owner, null, null, null, txt);
     }
 
     public void tapTargetAbility(Creature _cr, Player _pl) throws IOException {
         String txt = this.text.substring(this.text.indexOf("ТАПТ:") + "ТАПТ:".length() + 1, this.text.indexOf(".", this.text.indexOf("ТАПТ:")) + 1);
         System.out.println("ТАПТ: " + txt);
         tap();
-        Card.ability(owner.owner,this, owner, _cr, _pl, txt);
+        Card.ability(owner.owner,this, owner, null, _cr, _pl, txt);
     }
 
     public void cry(Creature _cr, Player _pl) throws IOException {
         String txt = this.text.substring(this.text.indexOf("Наймт:") + "Наймт:".length() + 1, this.text.indexOf(".", this.text.indexOf("Наймт:")) + 1);
         System.out.println("Наймт: " + txt);
-        Card.ability(owner.owner,this, owner, _cr, _pl, txt);
+        Card.ability(owner.owner,this, owner, null, _cr, _pl, txt);
     }
 }

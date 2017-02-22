@@ -67,15 +67,15 @@ class Card {
 		if (creature.text.contains("Если выбрана целью заклинание - погибает.")) {
 			creature.die();
 		} // delete else
-		ability(_pl.owner, this, _pl, creature, null, text);
+		ability(_pl.owner, this, _pl, null, creature, null, text);
 	}
 
 	public void playOnPlayer(Player _pl, Player _player) throws IOException {
-		ability(_pl.owner, this, _pl, null, _player, text);
+		ability(_pl.owner, this, _pl, null, null, _player, text);
 	}
 
 	void playNoTarget(Player _pl) throws IOException {
-		ability(_pl.owner, this, _pl, null, null, this.text);
+		ability(_pl.owner, this, _pl, null, null, null, this.text);
 	}
 
 	public static Card createCardWithID(Gamer gamer, String name){
@@ -99,6 +99,8 @@ class Card {
 			return new Card(0, "Тиша", "", 1, 0, 0, 1, "ТАПТ:2 Отравить+ выбранное существо на 1.", 0, 26);
 		   case "Тейа":
                return new Card(0, name, "", 1, 0, 0, 3, "ТАПТ:2 Ранить персонажа на 1. 2ТАПТ:5 Ранить персонажа на 2.", 0, 26);
+		   case "Илариэль":
+               return new Card(0, name, "", 4, 0, 0, 3, "ТАПТ:2 Выстрел на 1. 2ТАПТ:6 Получить плюс к выстрелам на 1.", 0, 28);
         case "Свирепый резак":
 			return new Card(0, name, "", 2, 0, 0, 1, "ТАПТ:2 Выбранное существо получает 'Опыт в атаке и Рывок'.", 0,
 					28);
@@ -114,7 +116,7 @@ class Card {
 			return new Card(1, name, "", 5, 1, 1, 0,
 					"Ранить на остаток выбранное существо и своего героя на столько же.", 0, 0);
 		case "Возрождение":
-			return new Card(1, name, "", 5, 1, 0, 0, "Раскопать (2,0, ,0,0).", 0, 0);
+			return new Card(1, name, "", 5, 1, 0, 0, "Раскопать (2,0, ,0,0, ).", 0, 0);
 		case "Гьерхор":
 			return new Card(1, "Гьерхор", "Йордлинг", 3, 2, 0, 0, "", 2, 2);
 		case "Алчущие крови":
@@ -335,7 +337,7 @@ class Card {
 		}
 	}
 	
-	static void ability(Gamer owner, Card _who, Player _whis, Creature _cr, Player _pl, String txt) throws IOException {
+	static void ability(Gamer owner, Card _who, Player _whis, Creature _whoCr, Creature _cr, Player _pl, String txt) throws IOException {
 		// Super function! Do all what do cards text!
 		// Which Card player(_who), who player(_whis), on what creature(_cr, may
 		// null), on what player(_pl, may null), text to play(txt)
@@ -389,6 +391,10 @@ class Card {
 		}
 		if (txt.contains("Получить щит ББ.")) {
 			_whis.effect.takeBBShield(true);
+		}
+		if (txt.contains("Получить плюс к выстрелам на ")) {
+			int dmg = MyFunction.getNumericAfterText(txt, "Получить плюс к выстрелам на ");
+			_whis.effect.takeBonusToShoot(true, dmg);
 		}
 		if (txt.contains("Лики-абилка.")) {// Only for player, who called it.
 			if (_whis.playerName.equals(owner.name)) {
@@ -465,14 +471,11 @@ class Card {
 				owner.choiceXtype = Integer.parseInt(parameter.get(0));
 				owner.choiceXcolor = Integer.parseInt(parameter.get(1));
 				owner.choiceXcreatureType = parameter.get(2);
-				if (owner.choiceXcreatureType.equals(" "))
-					owner.choiceXcreatureType = "";
 				owner.choiceXcost = Integer.parseInt(parameter.get(3));
 				owner.choiceXcostExactly = Integer.parseInt(parameter.get(4));
 				owner.choiceXname = parameter.get(5);
-				if (owner.choiceXname.equals(" "))
-					owner.choiceXname = "";
 				owner.setPlayerGameStatus(MyFunction.PlayerStatus.searchX);
+				owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceTarget);
 				owner.sendChoiceSearch(false, _whis.name + " ищет в колоде.");
 				owner.server.sendMessage("You search "+owner.choiceXtype+","+owner.choiceXcolor+","+owner.choiceXcreatureType+","+owner.choiceXcost+","+owner.choiceXcostExactly+","+owner.choiceXname);
 				System.out.println("pause");
@@ -485,20 +488,18 @@ class Card {
 				}
 				System.out.println("resume");
 			}
-		} else if (txt.contains("Раскопать ("))
-
-		{// Only for player, who called it.
+		} else if (txt.contains("Раскопать ("))	{// Only for player, who called it.
 			if (_whis.playerName.equals(owner.player.playerName)) {
 				ArrayList<String> parameter = MyFunction.getTextBetween(txt);
 				owner.choiceXtype = Integer.parseInt(parameter.get(0));
 				owner.choiceXcolor = Integer.parseInt(parameter.get(1));
 				owner.choiceXcreatureType = parameter.get(2);
-				if (owner.choiceXcreatureType.equals(" "))
-					owner.choiceXcreatureType = "";
 				owner.choiceXcost = Integer.parseInt(parameter.get(3));
 				owner.choiceXcostExactly = Integer.parseInt(parameter.get(4));
+				owner.choiceXname = parameter.get(5);
 				owner.setPlayerGameStatus(MyFunction.PlayerStatus.digX);
-				owner.sendChoiceSearch(true, _whis.name + " ищет в колоде.");
+				owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceTarget);
+				owner.sendChoiceSearch(true, _whis.name + " ищет на кладбище.");
 				System.out.println("pause");
 				synchronized (owner.cretureDiedMonitor) {
 					try {
@@ -579,33 +580,25 @@ class Card {
 			_pl.takeDamage(dmg);
 
 		}
-		if (txt.contains("Ранить героя противника на "))
-
-		{
+		if (txt.contains("Ранить героя противника на ")) {
 			int dmg = MyFunction.getNumericAfterText(txt, "Ранить выбранного героя на ");
 			owner.printToView(0, _pl.playerName + " получил " + dmg + " урона.");
 			_pl.takeDamage(dmg);
 
 		}
-		if (txt.contains("Уничтожьте отравленное существо."))
-
-		{
+		if (txt.contains("Уничтожьте отравленное существо.")) {
 			if (_cr.effects.poison > 0) {
 				owner.printToView(0, _who.name + " уничтожает " + _cr.name + ".");
 				_cr.die();
 			}
 		}
-		if (txt.contains("Ранить существо без ран на "))
-
-		{
+		if (txt.contains("Ранить существо без ран на ")) {
 			int dmg = MyFunction.getNumericAfterText(txt, "Ранить существо без ран на ");
 			if (_cr != null && _cr.damage == 0) {
 				_cr.takeDamage(dmg, _who, Creature.DamageSource.ability);
 			}
 		}
-		if (txt.contains("Ранить выбранное существо на "))
-
-		{
+		if (txt.contains("Ранить выбранное существо на "))	{
 			int dmg = MyFunction.getNumericAfterText(txt, "Ранить выбранное существо на ");
 			_cr.takeDamage(dmg, _who, Creature.DamageSource.ability);
 		}
@@ -615,20 +608,15 @@ class Card {
 		}
 		if (txt.contains("Ранить на остаток выбранное существо и своего героя на столько же")) {
 			int dmg = _cr.getTougness() - _cr.damage;
-			owner.printToView(0, _cr.name + " получил " + dmg + " урона.");
-			owner.printToView(0, _whis.name + " получил " + dmg + " урона.");
 			_cr.takeDamage(dmg, _who, Creature.DamageSource.ability);
 			_whis.takeDamage(dmg);
 		}
-		if (txt.contains("Выбранное существо не может атаковать и выступать защитником до конца следующего хода."))
-
-		{
+		if (txt.contains("Выбранное существо не может атаковать и выступать защитником до конца следующего хода."))	{
 			_cr.effects.takeTemporaryAdditionalText("Не может атаковать. Не может блокировать.", 2);
 		}
 		if (txt.contains("Нанести урон выбранному существу, равный его удару.")) {
 			int dmg = _cr.getPower();
-			owner.printToView(0, _cr.name + " получил " + dmg + " урона.");
-			// _cr.takeDamage(dmg, _who, Creature.DamageSource.spell);
+			_cr.takeDamage(dmg, _who, Creature.DamageSource.spell);
 		}
 		if (txt.contains("Выбранное существо получает '")) {
 			String s = MyFunction.getTextBetweenSymbol(txt, "Выбранное существо получает '", "'");
@@ -804,16 +792,19 @@ class Card {
 					_whis.drawCard();
 			}
 		}
-		// target
-		if (txt.contains("Выстрел по существу на "))
-
-		{
+		if (txt.contains("Выстрел по существу на ")) {
 			int dmg = MyFunction.getNumericAfterText(txt, "Выстрел по существу на ");
+			if (_whoCr!= null) {dmg+=_whoCr.effects.getBonusToShoot();}
+			else {dmg+=_whis.effect.getBonusToShoot();}
+			
 			owner.printToView(0, _who.name + " стреляет на " + dmg + " по " + _cr.name);
 			_cr.takeDamage(dmg, _who, Creature.DamageSource.scoot, _who.haveRage());
 		}
 		if (txt.contains("Выстрел на ")) {
 			int dmg = MyFunction.getNumericAfterText(txt, "Выстрел на ");
+			if (_whoCr!= null) {dmg+=_whoCr.effects.getBonusToShoot();}
+			else {dmg+=_whis.effect.getBonusToShoot();}
+			
 			if (_cr != null) {
 				owner.printToView(0, _who.name + " стреляет на " + dmg + " по " + _cr.name);
 				_cr.takeDamage(dmg, _who, Creature.DamageSource.scoot, _who.haveRage());

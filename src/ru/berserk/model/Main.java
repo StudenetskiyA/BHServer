@@ -7,7 +7,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class Main {
     static final int COIN_START = 10;
     static final String CLIENT_VERSION = "0.02";
-    static final String SERVER_VERSION = "0.0315";
+    static final String SERVER_VERSION = "0.03251";
     public static int randomNum = ThreadLocalRandom.current().nextInt(100, 999 + 1);
     private static ArrayList<String> names = new ArrayList<>();
     private static ArrayList<Gamer> freePlayer = new ArrayList<>();

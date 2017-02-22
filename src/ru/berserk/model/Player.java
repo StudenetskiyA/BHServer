@@ -39,6 +39,7 @@ public class Player extends Card {
         Player whis;
         String additionalText = "";
         private boolean bbShield = false;
+        int bonusToShoot = 0;
 
         Effects(Player _pl) {
             whis = _pl;
@@ -48,12 +49,23 @@ public class Player extends Card {
             return bbShield;
         }
 
+        int getBonusToShoot(){
+        	return bonusToShoot;
+        }
+        
         //#TakeCreatureEffect(Player, CreatureNumOnBoard,Effect,EffectCount)
         void takeBBShield(boolean take) throws IOException {
             bbShield = take;
             int t = (take) ? 1 : 0;
             owner.sendBoth("#TakePlayerEffect(" + playerName + "," + MyFunction.EffectPlayer.bbShield.getValue() + "," + t + ")");
         }
+        
+        void takeBonusToShoot(boolean take,int n) throws IOException {
+            bonusToShoot = (take) ? n:0 ;
+            int t = (take) ? 1 : 0;
+            owner.sendBoth("#TakePlayerEffect(" + playerName + "," + MyFunction.EffectPlayer.bonusToShoot.getValue() + "," + t + ")");
+        }
+        
     }
 
     void addCreatureToList(Creature c) throws IOException {
@@ -80,7 +92,7 @@ public class Player extends Card {
 
     void removeCardFromGraveyard(Card c) throws IOException {
         graveyard.remove(c);
-        owner.sendBoth("#RemoveCardFromGraveyard(" + playerName + "," + c.name + ")");
+        owner.sendBoth("#RemoveCardFromGraveyard(" + playerName + "," + c.id + ")");
     }
 
     void removeCardFromHand(Card c) throws IOException {
@@ -171,36 +183,42 @@ public class Player extends Card {
         return r;
     }
 
-    Creature searchWhenOtherDieAbility(Creature cr) {
+    ArrayList<Creature> searchWhenOtherDieAbility(Creature cr) {
+    	ArrayList<Creature> tmp = new ArrayList<>();
         for (Creature p : creatures) {
             if (p.text.contains("При гибели другого вашего существа:") && p != cr && !p.isDie())
-                return p;
+                tmp.add(p);
             if (p.text.contains("При гибели в ваш ход другого вашего существа:") && p.owner.playerName.equals(owner.board.whichTurn) && p != cr && !p.isDie())
-                return p;
+                tmp.add(p);
         }
-        return null;
+        return tmp;
     }
 
     void massDieCheckNeededTarget() throws IOException {//if someone wants to choice target at death(self or other) - pause game
         crDied = new ArrayList<>(diedCreatureOnBoard());//died creature
         ListIterator<Creature> temp = crDied.listIterator();
         System.out.println("massDie, pl=" + playerName + ", found died " + crDied.size());
-
         while (temp.hasNext()) {
             Creature tmp = temp.next();
             //Creature ability at death
-            Creature cr = searchWhenOtherDieAbility(tmp);//creature, who wants to other die(ex. Падальщик Пустоши)
+            ArrayList<Creature> crArray = searchWhenOtherDieAbility(tmp);//creature, who wants to other die(ex. Падальщик Пустоши)
+            ListIterator<Creature> crList = crArray.listIterator();
+            while (crList.hasNext()) {
+                Creature cr = crList.next();
             if (cr != null && crDied.size() > 0 && !cr.activatedAbilityPlayed) {
-                System.out.println("Падальщик, Орк-мститель. " + playerName);
+                System.out.println("Падальщик, Orc-revenger for " + playerName);
                 if (cr.targetType == 0) {
                     //Today only Ork. When you add more with target=0, correct here
+                	//TODO call ability
                     owner.choiceXtype = 0;
                     owner.choiceXcolor = 0;
                     owner.choiceXcreatureType = "";
                     owner.choiceXcost = 0;
                     owner.choiceXcostExactly = 0;
                     owner.choiceXname = "Орк-мститель";
+                    cr.activatedAbilityPlayed = true;//if you remove it, may play any times at turn.
                     owner.setPlayerGameStatus(MyFunction.PlayerStatus.searchX);
+                    owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceTarget);
                     owner.sendChoiceSearch(false, "Орк-мститель ищет в колоде.");
                     System.out.println("pause");
                     synchronized (owner.cretureDiedMonitor) {
@@ -235,6 +253,7 @@ public class Player extends Card {
                         cr.activatedAbilityPlayed = true;//If you can't target, after you can't play this ability
                     }
                 }
+            }
             }
             if (tmp.text.contains("Гибель:")) {
                 tmp.deathratleNoTarget(tmp, tmp.owner);
@@ -636,7 +655,7 @@ public class Player extends Card {
             System.out.println("ТАП2 HERO: " + txt);	
     	}
         tap();
-        Card.ability(owner, this, this, null, null, txt);
+        Card.ability(owner, this, this, null, null, null, txt);
     }
 
     void ability(int n, Creature _cr, Player _pl) throws IOException {
@@ -650,7 +669,7 @@ public class Player extends Card {
     	        System.out.println("TAPT2 HERO: " + txt);	
     	}
         tap();
-        Card.ability(owner, this, this, _cr, _pl, txt);
+        Card.ability(owner, this, this, null, _cr, _pl, txt);
     }
 
     public Card searchInGraveyard(String name) {

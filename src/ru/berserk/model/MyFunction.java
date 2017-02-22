@@ -105,7 +105,7 @@ public class MyFunction {
     }
 
     enum EffectPlayer{
-        bbShield(1);
+        bbShield(1), bonusToShoot(2);
 
         private final int value;
 
@@ -121,6 +121,8 @@ public class MyFunction {
             switch(x) {
                 case 1:
                     return bbShield;
+                case 2: 
+                	return bonusToShoot;
             }
             return null;
         }
@@ -128,7 +130,7 @@ public class MyFunction {
 
     enum Effect{
         poison(1), vulnerability(2),turnToDie(3), die(4), bonusPowerUEOT(5), bonusPower(6), bonusTougnessUEOT(7), bonusTougness(8),
-        bonusArmor(9), cantattackandblock(10), controlChanged(11), notOpenAtBeginNextTurn(12);
+        bonusArmor(9), cantattackandblock(10), controlChanged(11), notOpenAtBeginNextTurn(12), bonusToShoot(13);
 
         private final int value;
 
@@ -166,6 +168,8 @@ public class MyFunction {
                 	return controlChanged;
                 case 12:
                 	return notOpenAtBeginNextTurn;
+                case 13:
+                	return bonusToShoot;
             }
             return null;
         }
@@ -292,6 +296,9 @@ public class MyFunction {
         {
             if (targetType==22) return true;
         }
+
+        if (targetType==0) return true;
+        
         return false;
     }
 

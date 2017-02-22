@@ -24,6 +24,7 @@ public class ResponseClientMessage extends Thread {
     public synchronized void run() {
         boolean dontDoQueue = false;
         boolean freeMonitor = false;
+        boolean revertQueue = false;
         gamer.ready = false;
 
         try {
@@ -149,7 +150,6 @@ public class ResponseClientMessage extends Thread {
             player.abilityNoTarget(Integer.parseInt(parameter.get(1)));
         } else if (fromServer.startsWith("$BLOCKER(")) {
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
-
             Creature cr = gamer.opponent.player.creatures.get(Integer.parseInt(parameter.get(1)));//Who attack
             if (Integer.parseInt(parameter.get(2)) == -1) {
                 if (Integer.parseInt(parameter.get(3)) == -1) {
@@ -181,6 +181,7 @@ public class ResponseClientMessage extends Thread {
             }
             gamer.setPlayerGameStatus(PlayerStatus.EnemyTurn);
             gamer.opponent.setPlayerGameStatus(PlayerStatus.MyTurn);
+            revertQueue = true;
             //dontDoQueue = true;
         } else if (fromServer.startsWith("$PLAYCARD(")) {
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
@@ -276,8 +277,14 @@ public class ResponseClientMessage extends Thread {
 
         if (!dontDoQueue) {
             while(gamer.gameQueue.size()!=0 || gamer.opponent.gameQueue.size()!=0) {
+            	if (!revertQueue){
                 gamer.opponent.gameQueue.responseAllQueue();
                 gamer.gameQueue.responseAllQueue();
+            	}
+            	else {
+                    gamer.gameQueue.responseAllQueue();
+                    gamer.opponent.gameQueue.responseAllQueue();
+            	}
             }
         }
 

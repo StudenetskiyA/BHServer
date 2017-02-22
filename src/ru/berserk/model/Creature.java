@@ -35,6 +35,7 @@ public class Creature extends Card {
         private int bonusTougness = 0;
         private int bonusTougnessUEOT = 0;
         private int bonusArmor = 0;
+        private int bonusToShoot = 0;
         int turnToDie = 999;
         boolean vulnerability = false;
         boolean upkeepPlayed = false;
@@ -68,6 +69,7 @@ public class Creature extends Card {
               bonusTougness = ef.bonusTougness;
               bonusTougnessUEOT = ef.bonusTougnessUEOT;
               bonusArmor = ef.bonusArmor;
+              bonusToShoot = ef.bonusToShoot;
               turnToDie = 999;
               vulnerability = ef.vulnerability;
               upkeepPlayed = ef.upkeepPlayed;
@@ -155,11 +157,20 @@ public class Creature extends Card {
             return bonusTougness;
         }
 
+        int getBonusToShoot(){
+        	return bonusToShoot;
+        }
+        
         //#TakeCreatureEffect(Player, CreatureNumOnBoard,Effect,EffectCount)
         void takePoison(int p) throws IOException {
             if (poison <= p)
                 poison = p;
             owner.owner.sendBoth("#TakeCreatureIdEffect(" + whis.id + "," + MyFunction.Effect.poison.getValue() + "," + p + ")");
+        }
+
+        void takeBonusToScoot(int p) throws IOException {
+            bonusToShoot = p;
+            owner.owner.sendBoth("#TakeCreatureIdEffect(" + whis.id + "," + MyFunction.Effect.bonusToShoot.getValue() + "," + p + ")");
         }
 
         void takeTurnToDie(int t) throws IOException {
@@ -360,11 +371,11 @@ public class Creature extends Card {
 
     void fightCreature(Creature second) throws IOException {
         if (!second.isTapped) {//First is passive
-            owner.owner.printToView(0, this.name + " сражается с " + second.name + ".");
+           // owner.owner.printToView(0, this.name + " сражается с " + second.name + ".");
             if ((second.text.contains("Первый удар.")) && (!this.text.contains("Первый удар."))) {
                 if (this.damage < this.hp)
                     second.takeDamage(this.getPower(), this, DamageSource.fightDefense, second.haveRage());
-                this.takeDamage(second.getPower(), second, DamageSource.fightOffense, second.haveRage());
+                    this.takeDamage(second.getPower(), second, DamageSource.fightOffense, second.haveRage());
             } else if ((this.text.contains("Первый удар.")) && (!second.text.contains("Первый удар."))) {
                 second.takeDamage(this.getPower(), this, DamageSource.fightDefense, second.haveRage());
                 if (second.damage < second.hp)
@@ -515,7 +526,7 @@ public class Creature extends Card {
         String txt = this.text.substring(this.text.indexOf("ТАП:") + "ТАП:".length() + 1, this.text.indexOf(".", this.text.indexOf("ТАП:")) + 1);
         System.out.println("ТАПТ: " + txt);
         tapCreature();
-        Card.ability(owner.owner, this, owner, null, null, txt);
+        Card.ability(owner.owner, this, owner, this, null, null, txt);
     }
 
     void tapTargetAbility(Creature _cr, Player _pl) throws IOException {
@@ -527,18 +538,18 @@ public class Creature extends Card {
             return;
         }
         tapCreature();
-        Card.ability(owner.owner, this, owner, _cr, _pl, txt);
+        Card.ability(owner.owner, this, owner, this, _cr, _pl, txt);
     }
 
     void deathratle(Creature _cr, Player _pl) throws IOException {
         String txt = this.text.substring(this.text.indexOf("Гибельт:") + "Гибельт:".length() + 1, this.text.indexOf(".", this.text.indexOf("Гибельт:")) + 1);
         System.out.println("Гибельт: " + txt);
-        Card.ability(owner.owner, this, owner, _cr, _pl, txt);
+        Card.ability(owner.owner, this, owner, this, _cr, _pl, txt);
     }
 
     void battlecryNoTarget() throws IOException {
         String txt = this.text.substring(this.text.indexOf("Найм:") + "Найм:".length() + 1, this.text.indexOf(".", this.text.indexOf("Найм:")) + 1);
-        Card.ability(owner.owner, this, this.owner, this, null, txt);//Only here 3th parametr=1th
+        Card.ability(owner.owner, this, this.owner, this, this, null, txt);//Only here 3th parametr=1th
     }
 
     void battlecryEquipTarget(Equpiment _eq) throws IOException {
@@ -550,16 +561,16 @@ public class Creature extends Card {
     void battlecryTarget(Creature _cr, Player _pl) throws IOException {
         String txt = this.text.substring(this.text.indexOf("Наймт:") + "Наймт:".length() + 1, this.text.indexOf(".", this.text.indexOf("Наймт:")) + 1);
         System.out.println("Наймт: " + txt);
-        Card.ability(owner.owner, this, owner, _cr, _pl, txt);
+        Card.ability(owner.owner, this, owner, this, _cr, _pl, txt);
     }
 
-    static void deathratleNoTarget(Creature _card, Player _owner) throws IOException {
+    void deathratleNoTarget(Creature _card, Player _owner) throws IOException {
         String txt = _card.text.substring(_card.text.indexOf("Гибель:") + "Гибель:".length() + 1, _card.text.indexOf(".", _card.text.indexOf("Гибель:")) + 1);
-        Card.ability(_owner.owner, _card, _owner, _card, null, txt);//Only here 3th parametr=1th
+        Card.ability(_owner.owner, _card, _owner, this, _card, null, txt);//Only here 3th parametr=1th
     }
 
     void die() throws IOException {
-        System.out.println("Die!");
+       // System.out.println("Die!");
         //Cards put to graveyard instantly, not in end of queue!
         trueOwner.addCardToGraveyard(this);
         owner.owner.gameQueue.push(new GameQueue.QueueEvent("Die", this, 0));
