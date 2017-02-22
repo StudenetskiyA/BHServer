@@ -352,20 +352,22 @@ public class Player extends Card {
         while (temp.hasNext()) {
             Creature tmp = temp.next();
             //Creature ability at enter to board
-            if (tmp.text.contains("Найм:") && !tmp.effects.battlecryPlayed && tmp.getTougness() > tmp.damage) {
+            if (tmp.text.contains("Найм:") && !tmp.effects.battlecryPlayed && !tmp.isDie()) {
                 tmp.battlecryNoTarget();
                 tmp.effects.battlecryPlayed = true;
             }
-            if (tmp.text.contains("Наймт:") && !tmp.effects.battlecryPlayed && tmp.getTougness() > tmp.damage)
+            if (tmp.text.contains("Наймт:") && !tmp.effects.battlecryPlayed && !tmp.isDie())
                 //CHECK EXIST TARGET
                 if (MyFunction.canTargetComplex(this, tmp)) {
+                	
                     owner.setPlayerGameStatus(MyFunction.PlayerStatus.choiceTarget);
                     owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceTarget);
                     ActivatedAbility.creature = tmp;
                     ActivatedAbility.whatAbility = onCryAbility;
+                    if (tmp.text.contains("Цель не обязательно.")) ActivatedAbility.ableAbility=false;
+                    else ActivatedAbility.ableAbility=true;
                     //pause until player choice target.
                     owner.sendChoiceTarget(tmp.name + " просит выбрать цель.");
-                    tmp.effects.battlecryPlayed = true;
                     System.out.println("pause");
                     synchronized (owner.cretureDiedMonitor) {
                         try {
@@ -375,6 +377,12 @@ public class Player extends Card {
                         }
                     }
                     System.out.println("resume");
+                    tmp.effects.battlecryPlayedTimes--;
+                    if (tmp.effects.battlecryPlayedTimes<=0)
+                    tmp.effects.battlecryPlayed = true;
+                    else {
+                    	massSummonCheckNeededTarget();
+                    }
                     break;//Cry played creature by creature.
                 } else {
                     owner.printToView(0, "Целей для " + tmp.name + " нет.");
@@ -635,12 +643,12 @@ public class Player extends Card {
     }
 
     void heal(int dmg) throws IOException {
-        if (equpiment[1].name.equals("Браслет подчинения")) {
+        if (equpiment[1]!=null && equpiment[1].name.equals("Браслет подчинения")) {
             owner.printToView(0, name + " не может быть излечен.");
         } else {
             damage -= dmg;
             if (damage < 0) damage = 0;
-            owner.sendBoth("#TakeHeroDamage(" + playerName + "," + dmg + ",0)");
+            owner.sendBoth("#TakeHeroDamage(" + playerName + ",-" + dmg + ",0)");
         }
     }
 

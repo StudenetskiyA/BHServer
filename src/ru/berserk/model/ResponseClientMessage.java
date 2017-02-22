@@ -39,6 +39,7 @@ public class ResponseClientMessage extends Thread {
             gamer.opponent.player.newTurn();
         } else if (fromServer.startsWith("$DISCONNECT")) {
            // System.out.println(name + " normal disconnected.");
+        	if (gamer.opponent!=null)
             gamer.opponent.server.sendMessage("$DISCONNECT");
             gamer.removePlayer();
             return;
@@ -84,11 +85,12 @@ public class ResponseClientMessage extends Thread {
         	 ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
              Creature cr = Board.getCreatureById(player, parameter.get(0));
              Equpiment eq = Board.getEqupimentByID(player, parameter.get(1));
-             System.out.println("Eq id = "+eq.id);
              cr.battlecryEquipTarget(eq);
              dontDoQueue = true;
              freeMonitor = true;
-             System.out.println("BET complite");
+        } else if ((fromServer.startsWith("$NOTHINGTARGET("))) {//no parameter
+         dontDoQueue = true;
+         freeMonitor = true;
         } else if ((fromServer.startsWith("$CRYTARGET(")) || (fromServer.startsWith("$TAPTARGET("))) {
             // CRYTARGET also for DeathratleTarget and TapTarget
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
@@ -134,7 +136,7 @@ public class ResponseClientMessage extends Thread {
             }
         } else if (fromServer.startsWith("$HEROTARGET(")) {//PlayerName,Nability,HalfBoard,CreatureId||-1,cost
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
-            player.untappedCoin -= Integer.parseInt(parameter.get(4));
+            player.untappedCoin -= Integer.parseInt(parameter.get(4));//TODO Get cost, not trust client
             Player who = (parameter.get(2).equals("0"))? player:gamer.opponent.player;
             int n = Integer.parseInt(parameter.get(1));
                 if (parameter.get(3).equals("-1")) player.ability(n,null, who);

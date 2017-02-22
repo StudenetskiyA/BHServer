@@ -26,7 +26,8 @@ public class MyFunction {
         static Creature creature;
         static boolean creatureTap;
         static WhatAbility whatAbility=WhatAbility.nothing;
-
+        static boolean ableAbility = true;
+        
         enum WhatAbility {
             heroAbility(1), weaponAbility(2), toHandAbility(3), onUpkeepPlayed(4), onDeathPlayed(5), onOtherDeathPlayed(6), 
             spellAbility(7), onCryAbility(8), nothing(0);

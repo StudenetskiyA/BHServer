@@ -25,7 +25,8 @@ public class ServerEndpointDemo {
     @OnMessage
     public String handleMessage(String message) {
         System.out.println("receive from client: " + message);
-        String replyMessage = "echo " + message;
+        //String replyMessage = "echo " + message;
+        String replyMessage="";
         System.out.println("send to client: " + replyMessage);
         try {
             gamer.run(message);

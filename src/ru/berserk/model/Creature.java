@@ -40,6 +40,7 @@ public class Creature extends Card {
         boolean vulnerability = false;
         boolean upkeepPlayed = false;
         boolean battlecryPlayed = false;
+        int battlecryPlayedTimes = 0;
         boolean deathPlayed = false;
         boolean controlChanged = false;
         ArrayList<TemporaryTextEffect> temporaryTextEffects = new ArrayList<>();
@@ -94,6 +95,12 @@ public class Creature extends Card {
                 }
             }
             activatedAbilityPlayed = false;
+            
+            if (whis.text.contains(" В конце хода если не имеет ран, вернуть его в руку.") &&
+            		whis.damage==0){
+            	whis.returnToHand();
+            }
+           
         }
 
         String getAdditionalText(){
@@ -113,7 +120,13 @@ public class Creature extends Card {
         }
 
         int getBonusPower() {
+        	//TODO Change name on have text! Creature may loose ability
             int staticBonus = 0;
+            //Rage ors
+            if (text.contains("Пока у вас есть другое существо, получает +2 к удару") &&
+            		owner.creatures.size()>1) {
+            	staticBonus+=2;
+            }
             //TanGnome take + for power
             if ((creatureType.equals("Гном")) && (!name.equals("Тан гномов"))) {
                 int tanFounded = 0;
@@ -236,6 +249,17 @@ public class Creature extends Card {
             temporaryTextEffects.add(new TemporaryTextEffect(txt,lenght));
             owner.owner.sendBoth("#TakeCreatureIdText(" + whis.id + "," + txt + ")");
         }
+
+        boolean getAttackSkill() {
+        	//Rage ors
+            if (whis.text.contains("Пока у вас есть другое существо, получает +2 к удару и опыт в атаке.") &&
+            		whis.owner.creatures.size()>1) {
+            	return true;
+            }
+            if (additionalText.contains("Опыт в атаке")) return true;
+			
+			return false;
+		}
     }
 
     String getText() {
@@ -277,7 +301,7 @@ public class Creature extends Card {
 
     boolean getAttackSkill() {
         if (text.contains("Опыт в атаке")) return true;
-        if (effects.additionalText.contains("Опыт в атаке")) return true;
+        if (effects.getAttackSkill()) return true;
         return false;
     }
 
@@ -326,6 +350,9 @@ public class Creature extends Card {
         currentArmor = _card.currentArmor;
         maxArmor = _card.maxArmor;
         damage = _card.damage;
+        if (_card.text.contains("Повторить раз ")) {
+        	this.effects.battlecryPlayedTimes = MyFunction.getNumericAfterText(_card.text, "Повторить раз ");
+        }
     }
 
     Creature(Card _card, Player _owner) {
@@ -341,6 +368,9 @@ public class Creature extends Card {
         if (text.contains("Броня ")) {
             maxArmor = MyFunction.getNumericAfterText(text, "Броня ");
             currentArmor = getMaxArmor();
+        }
+        if (_card.text.contains("Повторить раз ")) {
+        	this.effects.battlecryPlayedTimes = MyFunction.getNumericAfterText(_card.text, "Повторить раз ");
         }
     }
 
@@ -572,6 +602,7 @@ public class Creature extends Card {
     void die() throws IOException {
        // System.out.println("Die!");
         //Cards put to graveyard instantly, not in end of queue!
+    	effects.isDie=true;
         trueOwner.addCardToGraveyard(this);
         owner.owner.gameQueue.push(new GameQueue.QueueEvent("Die", this, 0));
     }
@@ -590,6 +621,7 @@ public class Creature extends Card {
 //    }
     
     void changeControll() throws IOException {
+    	if (!this.isDie()) {
         //add to opponent
         Creature tmp = new Creature(this);
         owner.owner.opponent.board.addExistCreatureToBoard(tmp,owner.owner.opponent.player);//without cry
@@ -605,6 +637,7 @@ public class Creature extends Card {
         tmp.effects.takeControlChange();
         //remove from my board
         removeCreatureFromPlayerBoard();
+    	}
     }
 
     boolean isDie() {

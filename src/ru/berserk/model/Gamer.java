@@ -14,6 +14,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import javax.xml.bind.DatatypeConverter;
 
+import ru.berserk.model.MyFunction.ActivatedAbility;
 import ru.berserk.model.ServerEndpointDemo;
 
 public class Gamer {
@@ -284,7 +285,9 @@ public class Gamer {
 		s += status.getValue() + ",";
 		s += player.creatures.indexOf(MyFunction.ActivatedAbility.creature) + ",";
 		s += MyFunction.ActivatedAbility.whatAbility.getValue() + ",";
-		s += message + ")";
+		s += message + ",";
+		String tmp = (MyFunction.ActivatedAbility.ableAbility) ? "1":"0";
+		s += tmp+")";
 		server.sendMessage(s);
 	}
 

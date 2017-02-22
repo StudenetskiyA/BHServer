@@ -90,8 +90,8 @@ class Card {
 		switch (name) {
 		case "Тарна":
 			return new Card(0, "Тарна", "", 1, 0, 0, 0, "ТАП:4 Взять карт 1.", 0, 28);
-		case "Рэйвенкар":
-			return new Card(0, name, "", 5, 0, 0, 0, "ТАП:4 Ранить героя противника на 2. Излечить вашего героя на 2.",
+		case "Рейвенкар":
+			return new Card(0, name, "", 5, 0, 0, 0, "ТАП:4 Ранить героя противника на 2, Излечить вашего героя на 2.",
 					0, 24);
 		case "Бьорнбон":
 			return new Card(0, name, "", 3, 0, 0, 0, "ТАП:0 Получить щит ББ.", 0, 30);
@@ -325,7 +325,13 @@ class Card {
                return new Card(3, name, "Драконид", 6, 2, 22, 0, "Наймт: Уничтожить выбранную экипировку.", 5, 5);
 		case "Кутила":
               return new Card(10, name, "Пират", 6, 2, 0, 0, "Статичный эффект.", 6, 6);
-         default:
+	    case "Гневный орк":
+            return new Card(2, name, "Орк", 2, 2, 0, 0, "Пока у вас есть другое существо, получает +2 к удару и опыт в атаке.", 1, 3);
+	    case "Джаггернаут":
+            return new Card(7, name, "Зверь", 2, 2, 0, 0, "В конце хода если не имеет ран, вернуть его в руку.", 6, 8);
+	    case "Орк-арбалетчик":
+               return new Card(5, name, "Орк", 2, 2, 3, 0, "Наймт: Выстрел на 1. Цель не обязательно. Повторить раз 5.", 5, 3);
+       default:
 			System.out.println("Ошибка - Неопознанная карта:" + name);
 			return null;
 		}
@@ -581,9 +587,9 @@ class Card {
 
 		}
 		if (txt.contains("Ранить героя противника на ")) {
-			int dmg = MyFunction.getNumericAfterText(txt, "Ранить выбранного героя на ");
-			owner.printToView(0, _pl.playerName + " получил " + dmg + " урона.");
-			_pl.takeDamage(dmg);
+			int dmg = MyFunction.getNumericAfterText(txt, "Ранить героя противника на ");
+			owner.printToView(0, _whis.owner.opponent.player.playerName + " получил " + dmg + " урона.");
+			_whis.owner.opponent.player.takeDamage(dmg);
 
 		}
 		if (txt.contains("Уничтожьте отравленное существо.")) {
@@ -701,24 +707,18 @@ class Card {
 			int dmg = MyFunction.getNumericAfterText(txt, "Отравить выбранное существо на ");
 			_cr.effects.takePoison(dmg);
 		}
-		if (txt.contains(("Излечить вашего героя на ")))
-
-		{
+		if (txt.contains(("Излечить вашего героя на "))) {
 			int dmg = MyFunction.getNumericAfterText(txt, "Излечить вашего героя на ");
 			_whis.heal(dmg);
-			owner.printToView(0, _whis.playerName + " излечил " + dmg + " урона.");
+			//owner.printToView(0, _whis.playerName + " излечил " + dmg + " урона.");
 		}
-		if (txt.contains(("Получите * ")))
-
-		{
+		if (txt.contains(("Получите * "))) {
 			int dmg = MyFunction.getNumericAfterText(txt, "Получите * ");
 			_whis.untappedCoin += dmg;
 			_whis.totalCoin += dmg;
-			owner.printToView(0, _whis.playerName + " получил " + dmg + " монет.");
+			//owner.printToView(0, _whis.playerName + " получил " + dmg + " монет.");
 		}
-		if (txt.contains(("Потеряйте * ")))
-
-		{
+		if (txt.contains(("Потеряйте * ")))	{
 			int dmg = MyFunction.getNumericAfterText(txt, "Потеряйте * ");
 			int tmp = dmg;
 			dmg -= _whis.temporaryCoin;
