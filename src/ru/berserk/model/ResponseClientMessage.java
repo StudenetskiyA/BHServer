@@ -3,10 +3,8 @@ package ru.berserk.model;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import static ru.berserk.model.MyFunction.ActivatedAbility;
-import static ru.berserk.model.MyFunction.ActivatedAbility.WhatAbility.nothing;
+import ru.berserk.model.MyFunction.WhatAbility;
 import static ru.berserk.model.MyFunction.PlayerStatus;
-
 
 // Created by StudenetskiyA on 25.01.2017.
 
@@ -89,6 +87,8 @@ public class ResponseClientMessage extends Thread {
              dontDoQueue = true;
              freeMonitor = true;
         } else if ((fromServer.startsWith("$NOTHINGTARGET("))) {//no parameter
+        	gamer.activatedAbility.battlecryTargetChoicedCorrect=true;
+        	gamer.activatedAbility.battlecryPlayedTimes=0;
          dontDoQueue = true;
          freeMonitor = true;
         } else if ((fromServer.startsWith("$CRYTARGET(")) || (fromServer.startsWith("$TAPTARGET("))) {
@@ -99,22 +99,36 @@ public class ResponseClientMessage extends Thread {
             if (parameter.get(1).equals("-1")) {
                 //died creature ability.
                 death = true;
-                cr = new Creature(MyFunction.ActivatedAbility.creature);
+                cr = new Creature(gamer.activatedAbility.creature);
             } else {
                 cr =  Board.getCreatureById(player, parameter.get(1));
             }
            if (parameter.get(3).equals("-1")) {
         	   Player tmpPlayer = (parameter.get(2).equals("1")) ? gamer.opponent.player : player;
+        	   if (!gamer.activatedAbility.alreadyTargetId.contains(tmpPlayer.id) || !cr.text.contains("без повторов")){
+        		   gamer.activatedAbility.alreadyTargetId.add(tmpPlayer.id);
+        		   gamer.activatedAbility.battlecryTargetChoicedCorrect=true;
                 if (fromServer.contains("$CRYTARGET("))
                     if (death) cr.deathratle(null, tmpPlayer);
                     else cr.battlecryTarget(null, tmpPlayer);
                 else cr.tapTargetAbility(null, tmpPlayer);
+        	   }
+        	   else {
+        		   gamer.printToView(1, "Вы уже выбирали эту карту целью."+tmpPlayer.id);
+        	   }
             } else {
             	Creature t = Board.getCreatureById(player, parameter.get(3));
+            	 if (!gamer.activatedAbility.alreadyTargetId.contains(t.id) || !cr.text.contains("без повторов")){
+            		 gamer.activatedAbility.alreadyTargetId.add(t.id);
+            		 gamer.activatedAbility.battlecryTargetChoicedCorrect=true;
                     if (fromServer.contains("$CRYTARGET("))
                         if (death) cr.deathratle(t, null);
                         else cr.battlecryTarget(t, null);
                     else cr.tapTargetAbility(t, null);
+            	 }
+            	 else {
+            	   gamer.printToView(1, "Вы уже выбирали эту карту целью."+t.id);
+            	 }
             }
             dontDoQueue = true;
             freeMonitor = true;
@@ -188,6 +202,7 @@ public class ResponseClientMessage extends Thread {
         } else if (fromServer.startsWith("$PLAYCARD(")) {
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
             Card tmp = player.getCardByID(parameter.get(1));
+            if (tmp!=null && player.cardInHand.contains(tmp)) {
             if (!parameter.get(3).equals("-1")) {//if card targets creature
                 if ((parameter.get(4).equals(gamer.opponent.player.playerName)))
                     player.playCard(Integer.parseInt(parameter.get(2)), tmp, gamer.opponent.player.creatures.get(Integer.parseInt(parameter.get(3))), null);
@@ -202,6 +217,7 @@ public class ResponseClientMessage extends Thread {
                 	player.playCard(Integer.parseInt(parameter.get(2)), tmp, null, null);
                 }
                 }
+            }
         } else if (fromServer.startsWith("$PLAYWITHX(")) {
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
             int x = Integer.parseInt(parameter.get(5));
@@ -308,7 +324,7 @@ public class ResponseClientMessage extends Thread {
 
     private void freeMonitor() {
         synchronized (gamer.cretureDiedMonitor) {
-            ActivatedAbility.whatAbility = nothing;
+        	gamer.activatedAbility.whatAbility = WhatAbility.nothing;
             gamer.cretureDiedMonitor.notify();
         }
     }

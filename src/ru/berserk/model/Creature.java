@@ -40,7 +40,7 @@ public class Creature extends Card {
         boolean vulnerability = false;
         boolean upkeepPlayed = false;
         boolean battlecryPlayed = false;
-        int battlecryPlayedTimes = 0;
+        
         boolean deathPlayed = false;
         boolean controlChanged = false;
         ArrayList<TemporaryTextEffect> temporaryTextEffects = new ArrayList<>();
@@ -350,9 +350,6 @@ public class Creature extends Card {
         currentArmor = _card.currentArmor;
         maxArmor = _card.maxArmor;
         damage = _card.damage;
-        if (_card.text.contains("Повторить раз ")) {
-        	this.effects.battlecryPlayedTimes = MyFunction.getNumericAfterText(_card.text, "Повторить раз ");
-        }
     }
 
     Creature(Card _card, Player _owner) {
@@ -368,9 +365,6 @@ public class Creature extends Card {
         if (text.contains("Броня ")) {
             maxArmor = MyFunction.getNumericAfterText(text, "Броня ");
             currentArmor = getMaxArmor();
-        }
-        if (_card.text.contains("Повторить раз ")) {
-        	this.effects.battlecryPlayedTimes = MyFunction.getNumericAfterText(_card.text, "Повторить раз ");
         }
     }
 

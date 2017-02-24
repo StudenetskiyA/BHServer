@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.ListIterator;
 
-import static ru.berserk.model.MyFunction.ActivatedAbility;
-import static ru.berserk.model.MyFunction.ActivatedAbility.WhatAbility.*;
+import ru.berserk.model.MyFunction.WhatAbility.*;
+import ru.berserk.model.MyFunction.WhatAbility;
 
 // Created by StudenetskiyA on 30.12.2016.
 
@@ -136,6 +136,7 @@ public class Player extends Card {
         equpiment[1] = null;
         equpiment[2] = null;
         equpiment[3] = null;
+        id = _card.id;
     }
 
     Player(Gamer _owner, String _heroName, String _playerName, int _hp) {
@@ -151,6 +152,7 @@ public class Player extends Card {
         equpiment[1] = null;
         equpiment[2] = null;
         equpiment[3] = null;
+        id = _owner.name;
     }
 
     void endTurn() throws IOException {
@@ -234,12 +236,12 @@ public class Player extends Card {
                     if (MyFunction.canTargetComplex(this, cr)) {
                         owner.setPlayerGameStatus(MyFunction.PlayerStatus.choiceTarget);
                         owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceTarget);
-                        ActivatedAbility.creature = cr;
-                        ActivatedAbility.whatAbility = onOtherDeathPlayed;
+                        owner.activatedAbility.creature = cr;
+                        owner.activatedAbility.whatAbility = WhatAbility.onOtherDeathPlayed;
                         //pause until player choice target.
                         owner.sendChoiceTarget(cr.name + " просит выбрать цель.");
                         System.out.println("pause");
-                        ActivatedAbility.creature.activatedAbilityPlayed = true;//if you remove it, may play any times at turn.
+                        owner.activatedAbility.creature.activatedAbilityPlayed = true;//if you remove it, may play any times at turn.
                         synchronized (owner.cretureDiedMonitor) {
                             try {
                                 owner.cretureDiedMonitor.wait();
@@ -264,8 +266,8 @@ public class Player extends Card {
                 if (MyFunction.canTargetComplex(this, tmp)) {
                     owner.setPlayerGameStatus(MyFunction.PlayerStatus.choiceTarget);
                     owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceTarget);
-                    ActivatedAbility.creature = tmp;
-                    ActivatedAbility.whatAbility = onDeathPlayed;
+                    owner.activatedAbility.creature = tmp;
+                    owner.activatedAbility.whatAbility = WhatAbility.onDeathPlayed;
                     //pause until player choice target.
                     owner.sendChoiceTarget(tmp.name + " просит выбрать цель.");
                     System.out.println("pause");
@@ -284,8 +286,8 @@ public class Player extends Card {
                     if (n > 1) {
                         owner.setPlayerGameStatus(MyFunction.PlayerStatus.choiceTarget);
                         owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceTarget);
-                        ActivatedAbility.creature = new Creature(tmp);
-                        ActivatedAbility.whatAbility = ActivatedAbility.WhatAbility.toHandAbility;
+                        owner.activatedAbility.creature = new Creature(tmp);
+                        owner.activatedAbility.whatAbility = WhatAbility.toHandAbility;
                         //pause until player choice target.
                         owner.sendChoiceTarget(tmp.name + " просит cбросить карту.");
                         System.out.println("pause");
@@ -327,8 +329,8 @@ public class Player extends Card {
                     owner.setPlayerGameStatus(MyFunction.PlayerStatus.choiceTarget);
                     owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceTarget);
 
-                    ActivatedAbility.creature = tmp;
-                    ActivatedAbility.whatAbility = onUpkeepPlayed;
+                    owner.activatedAbility.creature = tmp;
+                    owner.activatedAbility.whatAbility = WhatAbility.onUpkeepPlayed;
                     //pause until player choice target.
                     owner.sendChoiceTarget(tmp.name + " просит выбрать цель.");
                     System.out.println("pause");
@@ -359,13 +361,12 @@ public class Player extends Card {
             if (tmp.text.contains("Наймт:") && !tmp.effects.battlecryPlayed && !tmp.isDie())
                 //CHECK EXIST TARGET
                 if (MyFunction.canTargetComplex(this, tmp)) {
-                	
                     owner.setPlayerGameStatus(MyFunction.PlayerStatus.choiceTarget);
                     owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceTarget);
-                    ActivatedAbility.creature = tmp;
-                    ActivatedAbility.whatAbility = onCryAbility;
-                    if (tmp.text.contains("Цель не обязательно.")) ActivatedAbility.ableAbility=false;
-                    else ActivatedAbility.ableAbility=true;
+                    owner.activatedAbility.creature = tmp;
+                    owner.activatedAbility.whatAbility = WhatAbility.onCryAbility;
+                    if (tmp.text.contains("Цель не обязательно.")) owner.activatedAbility.ableAbility=false;
+                    else owner.activatedAbility.ableAbility=true;
                     //pause until player choice target.
                     owner.sendChoiceTarget(tmp.name + " просит выбрать цель.");
                     System.out.println("pause");
@@ -377,9 +378,14 @@ public class Player extends Card {
                         }
                     }
                     System.out.println("resume");
-                    tmp.effects.battlecryPlayedTimes--;
-                    if (tmp.effects.battlecryPlayedTimes<=0)
-                    tmp.effects.battlecryPlayed = true;
+                    if (owner.activatedAbility.battlecryTargetChoicedCorrect){
+                    	owner.activatedAbility.battlecryPlayedTimes--;
+                    	owner.activatedAbility.battlecryTargetChoicedCorrect=false;
+                    }
+                    if (owner.activatedAbility.battlecryPlayedTimes<=0){
+                    	owner.activatedAbility.alreadyTargetId = new ArrayList<>();
+                    	tmp.effects.battlecryPlayed = true;
+                    }
                     else {
                     	massSummonCheckNeededTarget();
                     }

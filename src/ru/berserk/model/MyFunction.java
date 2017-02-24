@@ -21,52 +21,59 @@ public class MyFunction {
 	        return -1;
 	    }
 	
-    static class ActivatedAbility {
 
-        static Creature creature;
-        static boolean creatureTap;
-        static WhatAbility whatAbility=WhatAbility.nothing;
-        static boolean ableAbility = true;
-        
-        enum WhatAbility {
-            heroAbility(1), weaponAbility(2), toHandAbility(3), onUpkeepPlayed(4), onDeathPlayed(5), onOtherDeathPlayed(6), 
-            spellAbility(7), onCryAbility(8), nothing(0);
+      enum WhatAbility {
+          heroAbility(1), weaponAbility(2), toHandAbility(3), onUpkeepPlayed(4), onDeathPlayed(5), onOtherDeathPlayed(6), 
+          spellAbility(7), onCryAbility(8), nothing(0);
 
-            private final int value;
+          private final int value;
 
-            WhatAbility(int value) {
-                this.value = value;
-            }
+          WhatAbility(int value) {
+              this.value = value;
+          }
 
-            public int getValue() {
-                return value;
-            }
+          public int getValue() {
+              return value;
+          }
 
-            public static WhatAbility fromInteger(int x) {
-                switch (x) {
-                    case 0:
-                        return nothing;
-                    case 1:
-                        return heroAbility;
-                    case 2:
-                        return weaponAbility;
-                    case 3:
-                        return toHandAbility;
-                    case 4:
-                        return onUpkeepPlayed;
-                    case 5:
-                        return onDeathPlayed;
-                    case 6:
-                        return onOtherDeathPlayed;
-                    case 7:
-                    	return spellAbility;
-                    case 8:
-                    	return onCryAbility;
-                }
-                return null;
-            }
-        }
-    }
+          public static WhatAbility fromInteger(int x) {
+              switch (x) {
+                  case 0:
+                      return nothing;
+                  case 1:
+                      return heroAbility;
+                  case 2:
+                      return weaponAbility;
+                  case 3:
+                      return toHandAbility;
+                  case 4:
+                      return onUpkeepPlayed;
+                  case 5:
+                      return onDeathPlayed;
+                  case 6:
+                      return onOtherDeathPlayed;
+                  case 7:
+                  	return spellAbility;
+                  case 8:
+                  	return onCryAbility;
+              }
+              return null;
+          }
+      }
+
+	  
+     public static class ActivatedAbility {
+         Creature creature;
+         boolean creatureTap;
+         WhatAbility whatAbility=WhatAbility.nothing;
+         boolean ableAbility = true;
+         int battlecryPlayedTimes = 0;
+         ArrayList<String> alreadyTargetId = new ArrayList<>();
+         boolean battlecryTargetChoicedCorrect = false;
+         ActivatedAbility(){
+        	 
+         }
+     }
 
     public static Card searchCardInList(ArrayList<Card> list,String name){
         for (int i=0;i<list.size();i++){

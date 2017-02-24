@@ -3,6 +3,8 @@ package ru.berserk.model;
 
 import java.io.IOException;
 
+import ru.berserk.model.MyFunction.ActivatedAbility;
+
 /**
  * Created by StudenetskiyA on 23.01.2017.
  */
@@ -81,9 +83,12 @@ public class GameQueue
                 if (event.targetCr.owner.creatures.contains(event.targetCr)) {
                     event.targetCr.owner.massUpkeepCheckNeededTarget();
                 }
-            }
+            } 
             else if (event.whatToDo.equals("Summon")) {
                 if (event.targetCr.owner.creatures.contains(event.targetCr)) {
+                	if (event.targetCr.text.contains("Повторить раз ")) {
+                    	gamer.activatedAbility.battlecryPlayedTimes = MyFunction.getNumericAfterText(event.targetCr.text, "Повторить раз ");
+                    }
                     event.targetCr.owner.massSummonCheckNeededTarget();
                 }
             }

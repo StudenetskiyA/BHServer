@@ -19,9 +19,10 @@ import ru.berserk.model.ServerEndpointDemo;
 
 public class Gamer {
 	Board board = new Board();
+	public ActivatedAbility activatedAbility = new ActivatedAbility();
 	String name;
 	int idCount = 0;
-	Player player = new Player(this, "", "", 0);
+	Player player;// = new Player(this, "", "", 0);
 	GameQueue gameQueue = new GameQueue(this);
 	int creatureWhoAttack;
 	int creatureWhoAttackTarget;
@@ -279,14 +280,14 @@ public class Gamer {
 
 	void sendChoiceTarget(String message) throws IOException {
 		System.out.println("Sending choice target to " + player.playerName + ", whatAbility= "
-				+ MyFunction.ActivatedAbility.whatAbility.getValue());
+				+ activatedAbility.whatAbility.getValue());
 		String s = "#ChoiceTarget(";
 		s += player.playerName + ",";
 		s += status.getValue() + ",";
-		s += player.creatures.indexOf(MyFunction.ActivatedAbility.creature) + ",";
-		s += MyFunction.ActivatedAbility.whatAbility.getValue() + ",";
+		s += player.creatures.indexOf(activatedAbility.creature) + ",";
+		s += activatedAbility.whatAbility.getValue() + ",";
 		s += message + ",";
-		String tmp = (MyFunction.ActivatedAbility.ableAbility) ? "1":"0";
+		String tmp = (activatedAbility.ableAbility) ? "1":"0";
 		s += tmp+")";
 		server.sendMessage(s);
 	}
