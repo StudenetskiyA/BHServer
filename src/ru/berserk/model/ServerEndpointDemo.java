@@ -16,10 +16,11 @@ public class ServerEndpointDemo {
     Gamer gamer;
 
     @OnOpen
-    public void handleOpen(Session session) {
+    public void handleOpen(Session session) throws IOException {
         this.session = session;
         System.out.println("client is now connected");
         gamer = Main.start(this);
+        gamer.server.sendMessage("Server version is "+Main.SERVER_VERSION);
     }
 
     @OnMessage

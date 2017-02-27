@@ -1,6 +1,7 @@
 package ru.berserk.model;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 import ru.berserk.model.MyFunction.WhatAbility;
@@ -35,16 +36,40 @@ public class ResponseClientMessage extends Thread {
             player.endTurn();
             gamer.opponent.sendUntapAll();
             gamer.opponent.player.newTurn();
-        } else if (fromServer.startsWith("$DISCONNECT")) {
+        } else if (fromServer.startsWith("$CREATEDECK")) {
+        	   ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
+        	   String c="";
+        	   for (int i=2;i<parameter.size();i++){
+        		   c+=parameter.get(i)+",";
+        	   }
+        	   System.out.println(parameter.get(0)+"/"+ gamer.name+"/"+ parameter.get(1)+"/"+ c);
+        	   BHSqlServer.connect();
+               BHSqlServer.addUserDeck(parameter.get(0), gamer.name, parameter.get(1), c);
+               BHSqlServer.disconnect();
+               gamer.server.sendMessage("Create new deck ok");
+         } else if (fromServer.startsWith("$DELETEDECK")) {
+        	 ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
+        	 try {
+				BHSqlServer.deleteUserDeck(gamer.name, parameter.get(0));
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+         } else if (fromServer.startsWith("$DISCONNECT")) {
            // System.out.println(name + " normal disconnected.");
-        	if (gamer.opponent!=null)
+        	if (gamer.opponent!=null) {
             gamer.opponent.server.sendMessage("$DISCONNECT");
+        	}
             gamer.removePlayer();
             return;
-        }  else if (fromServer.startsWith("$SURREND")) {
+        } else if (fromServer.startsWith("$SURREND")) {
             //System.out.println(name + " surrend.");
-        	gamer.opponent.server.sendMessage("#Surrend("+player.playerName+")");
-            gamer.server.sendMessage("#Surrend("+player.playerName+")");
+        	if (gamer.opponent!=null) {
+        	gamer.opponent.server.sendMessage("#LoseGame("+player.playerName+",1)");
+        	gamer.opponent.winGame();
+        	}
+            gamer.server.sendMessage("#LoseGame("+player.playerName+",1)");
+            gamer.loseGame();
             gamer.opponent.removePlayer();
             gamer.removePlayer();
             return;

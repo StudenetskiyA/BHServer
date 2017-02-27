@@ -101,7 +101,9 @@ class Card {
                return new Card(0, name, "", 1, 0, 0, 3, "ТАПТ:2 Ранить персонажа на 1. 2ТАПТ:5 Ранить персонажа на 2.", 0, 26);
 		   case "Илариэль":
                return new Card(0, name, "", 4, 0, 0, 3, "ТАПТ:2 Выстрел на 1. 2ТАПТ:6 Получить плюс к выстрелам на 1.", 0, 28);
-        case "Свирепый резак":
+		   case "Алирра":
+               return new Card(0, name, "Герой-маг", 4, 0, 3, 3, "ТАПТ:1 Излечить персонажа на 1. 2ТАПТ:3 Излечить персонажа на 2.", 0, 32);
+         case "Свирепый резак":
 			return new Card(0, name, "", 2, 0, 0, 1, "ТАПТ:2 Выбранное существо получает 'Опыт в атаке и Рывок'.", 0,
 					28);
 		case "Эндор Флем":
@@ -245,9 +247,9 @@ class Card {
 			return new Card(3, name, "", 1, 2, 0, 0, "Если выбрана целью заклинание - погибает.", 4, 5);
 		case "Десница Архааля":
 			return new Card(4, name, "", 1, 2, 1, 0, "Опыт в защите. Наймт: Уничтожьте отравленное существо.", 1, 4);
-		case "Нойта":
-			return new Card(1, name, "Йордлинг", 1, 2, 1, 0, "Наймт: Ранить существо без ран на 3.", 1, 1);
-		case "Орк-мародер":
+		  case "Нойта":
+              return new Card(1, name, "Линунг", 3, 2, 1, 0, "Наймт: Ранить существо без ран на 3.", 1, 1);
+        	case "Орк-мародер":
 			return new Card(5, name, "", 2, 2, 0, 0, "Опыт в атаке. Первый удар. Рывок.", 5, 2);
 		case "Менгир Каррефура":
 			return new Card(3, name, "", 1, 2, 0, 1, "ТАПТ: Отравить+ выбранное существо на 1.", 0, 10);
@@ -546,10 +548,8 @@ class Card {
 		if (txt.contains("Излечить персонажа на "))	{
 			int dmg = MyFunction.getNumericAfterText(txt, "Излечить персонажа на ");
 			if (_cr != null) {
-				owner.printToView(0, _who.name + " излечивает " + _cr.name + " на " + dmg + ".");
 				_cr.heal(dmg);
 			} else {
-				owner.printToView(0, _who.name + " излечивает " + _pl.name + " на " + dmg + ".");
 				_pl.heal(dmg);
 			}
 		}
@@ -720,6 +720,7 @@ class Card {
 		}
 		if (txt.contains(("Потеряйте * ")))	{
 			int dmg = MyFunction.getNumericAfterText(txt, "Потеряйте * ");
+			_whis.totalCoin -= dmg;
 			int tmp = dmg;
 			dmg -= _whis.temporaryCoin;
 			_whis.temporaryCoin -= tmp;
@@ -727,7 +728,7 @@ class Card {
 				dmg = 0;
 			if (_whis.temporaryCoin < 0)
 				_whis.temporaryCoin = 0;
-			_whis.totalCoin -= dmg;
+			
 			if (_whis.untappedCoin > _whis.totalCoin)
 				_whis.untappedCoin = _whis.totalCoin;
 			owner.printToView(0, _whis.playerName + " потерял " + dmg + " монет.");
@@ -810,6 +811,7 @@ class Card {
 				_cr.takeDamage(dmg, _who, Creature.DamageSource.scoot, _who.haveRage());
 
 			} else {
+				_pl.effect.takeBBShield(false);
 				owner.printToView(0, _who.name + " стреляет на " + dmg + " по " + _pl.name);
 				_pl.takeDamage(dmg);
 			}

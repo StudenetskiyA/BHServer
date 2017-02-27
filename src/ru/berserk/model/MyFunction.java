@@ -2,6 +2,8 @@ package ru.berserk.model;
 
 import java.util.ArrayList;
 
+import com.mysql.jdbc.StringUtils;
+
 /**
  * Created by samsung on 21.01.2017.
  */
@@ -61,7 +63,12 @@ public class MyFunction {
           }
       }
 
-	  
+      public static boolean isNameUserCorrect(String name){
+          if (name.matches("^.*[^a-zA-Zа-яА-Я0-9].*$")) return false;
+          //TODO Censored words
+          return true;
+      }
+      
      public static class ActivatedAbility {
          Creature creature;
          boolean creatureTap;

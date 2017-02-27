@@ -639,11 +639,25 @@ public class Player extends Card {
     }
 
     void loseGame() throws IOException {
-        owner.server.sendMessage("#LoseGame(" + playerName + ")");
-        owner.opponent.server.sendMessage("#LoseGame(" + playerName + ")");
-        owner.setPlayerGameStatus(MyFunction.PlayerStatus.endGame);//It is not matter.
-        owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.endGame);
-
+    	if (owner.opponent!=null) {
+        	owner.opponent.server.sendMessage("#LoseGame("+playerName+",0)");
+        	owner.opponent.winGame();
+        	}
+            owner.server.sendMessage("#LoseGame("+playerName+",0)");
+            owner.loseGame();
+            owner.opponent.removePlayer();
+            owner.removePlayer();
+        
+    	
+//        owner.server.sendMessage("#LoseGame(" + playerName + ")");
+//        owner.loseGame();
+//        owner.opponent.server.sendMessage("#LoseGame(" + playerName + ")");
+//        owner.opponent.winGame();
+//        owner.setPlayerGameStatus(MyFunction.PlayerStatus.endGame);//It is not matter.
+//        owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.endGame);
+//        
+//        owner.opponent.removePlayer();
+//        owner.removePlayer();
         //TODO End game, get bonus etc.
         //owner.removeBothClient();
     }

@@ -10,10 +10,12 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 
 import javax.xml.bind.DatatypeConverter;
 
+import ru.berserk.model.BHSqlServer.DeckToClient;
 import ru.berserk.model.MyFunction.ActivatedAbility;
 import ru.berserk.model.ServerEndpointDemo;
 
@@ -48,6 +50,7 @@ public class Gamer {
     //For spell what aks to choice creature
 	Creature choiceCreature;
 	ServerEndpointDemo server;
+	boolean isGameStart = false;
 
 	Gamer(ServerEndpointDemo server) {
 		this.server = server;
@@ -91,13 +94,22 @@ public class Gamer {
 
 	private Deck getDeckList(String[] commands) throws IOException {
 		ArrayList<Card> result = new ArrayList<>();
-		int i = 1;
-		while (!commands[i].equals("$ENDDECK")) {
-		 System.out.println("Card = "+commands[i]);
-			Card tmp = new Card(Card.createCardWithID(this,commands[i]));
-			result.add(tmp);
-			i++;
+		DeckToClient d = new DeckToClient();
+		BHSqlServer.connect();
+		d = BHSqlServer.getUserDeck(this.name, this.deckName);
+		result.add(new Card(Card.createCardWithID(this,d.heroName)));
+		ArrayList<String> adding = new ArrayList<String>(Arrays.asList(d.cards.split(",")));
+		for (int i=0;i<adding.size();i++){
+			result.add(new Card(Card.createCardWithID(this,adding.get(i))));
 		}
+//		int i = 1;
+//		while (!commands[i].equals("$ENDDECK")) {
+//		 System.out.println("Card = "+commands[i]);
+//			Card tmp = new Card(Card.createCardWithID(this,commands[i]));
+//			result.add(tmp);
+//			i++;
+//		}
+		BHSqlServer.disconnect();
 		Deck r = new Deck(result); 
 		return r;
 	}
@@ -120,6 +132,7 @@ public class Gamer {
 			nameCorrect = true;
 		} else {
 			System.out.println("Name already exist.");
+			return;
 			// Other name?
 		}
 		deckName = parameter.get(1);
@@ -176,7 +189,69 @@ public class Gamer {
 	public void run(String command) throws IOException {
 		try {
 			String[] commands = command.split("\n");
-			if (commands[0].contains("$IAM")) {
+			if (commands[0].startsWith("$CONNECT")){
+				ArrayList<String> parameter = getTextBetween(commands[0]);
+				String m = "#Connect(";
+				//Check user and password
+				BHSqlServer.connect();
+				if (BHSqlServer.isUserExist(parameter.get(0))) {
+					if (BHSqlServer.getUserPass(parameter.get(0)).equals(parameter.get(1))) {
+					m+="ok"+",";
+					//Send rating and gold
+					m+=BHSqlServer.getUserRating(parameter.get(0))+",";
+					m+=BHSqlServer.getUserGold(parameter.get(0))+",";
+					name = parameter.get(0);
+					//Send avalaible decks name
+					
+					//Send avalaible cards?
+					
+					//Finaly
+					}
+					else {
+						m+="no,Пароль не верный";
+					}
+				}
+				else {
+					m+="no,Такого пользователя не существует";
+				}
+				
+				m+=")";
+				server.sendMessage(m);
+				
+				//Send decks to client
+				server.sendMessage("#YouTotalCards("+BHSqlServer.getUserCards(parameter.get(0))+")");
+				ArrayList<DeckToClient> decks = BHSqlServer.getUserDecks(parameter.get(0));
+				for (int i=0;i<decks.size();i++){
+					server.sendMessage("#YouHaveDeck("+decks.get(i).toString()+")");
+				}
+				BHSqlServer.disconnect();
+			}
+			else if (commands[0].startsWith("$NEWUSER")){
+				String m="#Connect(";
+				ArrayList<String> parameter = getTextBetween(commands[0]);
+				BHSqlServer.connect();
+				if (BHSqlServer.isUserExist(parameter.get(0))) {
+					m+="no,Такой пользователь уже существует";
+				}
+				else {
+					if (!MyFunction.isNameUserCorrect(parameter.get(0)) || parameter.get(0).equals("")) {
+						m+="no,Некорректное имя пользователя";
+					}
+					else {
+						if (parameter.get(1).length()<=4) {
+							m+="no,Слишком короткий пароль";
+						}
+						else {
+							BHSqlServer.addUser(parameter.get(0), parameter.get(1), "skyfolk@inbox.ru");
+							m+="no,Пользователь успешно добавлен";
+						}
+					}
+				}
+				m+=")";
+				BHSqlServer.disconnect();
+				server.sendMessage(m);
+			}
+			else if (commands[0].contains("$IAM")) {
 				ArrayList<String> parameter = getTextBetween(commands[0]);
 				String ver = parameter.get(2);
 				if (ver.equals(CLIENT_VERSION)) {
@@ -189,9 +264,7 @@ public class Gamer {
 				return;
 			}
 
-			// Repeatedly get commands from the client and process them.
-			System.out.println(name + ":" + command);
-			if (command.contains("$MULLIGANEND")) {//0,1,0,1
+			else if (command.contains("$MULLIGANEND")) {//0,1,0,1
 				endMuligan = true;
 				int nc=0;
 				ArrayList<String> parameter = MyFunction.getTextBetween(command);
@@ -200,6 +273,7 @@ public class Gamer {
 					if (Integer.parseInt(parameter.get(i))==1){
 						nc++;
 						player.deck.putOnBottomDeck(player.cardInHand.get(i));
+				        sendBoth("#PutOnBottomDeck(" + player.playerName + "," + player.cardInHand.get(i).id + ")");
 						player.removeCardFromHand(player.cardInHand.get(i));
 						//It may be not good. You may remove card with same name, but other position.
 					}
@@ -361,5 +435,18 @@ public class Gamer {
 		for (int i = 0; i < par.length; i++)
 			rtrn.add(par[i]);
 		return rtrn;
+	}
+
+	public void winGame(){
+		BHSqlServer.connect();
+		BHSqlServer.addUserRating(this.name, 1);
+		BHSqlServer.addUserGold(this.name, 10);
+		BHSqlServer.disconnect();
+	}
+	
+	public void loseGame(){
+		BHSqlServer.connect();
+		BHSqlServer.addUserRating(this.name, -1);
+		BHSqlServer.disconnect();
 	}
 }

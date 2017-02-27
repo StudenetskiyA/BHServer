@@ -5,9 +5,17 @@ import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Main {
-    static final int COIN_START = 10;
+    static final int COIN_START = 0;
+    static final String url = "jdbc:mysql://localhost:3306/jerry?useUnicode=yes&characterEncoding=utf8";
+    static final String user = "jerry";
+    static final String password = "QJaVlKVV";
+//    static final String url = "jdbc:mysql://localhost:3306/users?useUnicode=yes&characterEncoding=utf8";
+//    static final String user = "root";
+//    static final String password = "4lifewithBerserk";
+//    static final int COIN_START = 10;
+    
     static final String CLIENT_VERSION = "0.02";
-    static final String SERVER_VERSION = "0.03331";
+    static final String SERVER_VERSION = "0.0351511";
     public static int randomNum = ThreadLocalRandom.current().nextInt(100, 999 + 1);
     private static ArrayList<String> names = new ArrayList<>();
     private static ArrayList<Gamer> freePlayer = new ArrayList<>();
@@ -41,7 +49,8 @@ public class Main {
         			g.server.sendMessage("$OPPONENTCONNECTED(" + g.opponent.name + "," + g.opponent.player.deck.cards.get(0).name + "," + COIN_START + ")");
         			g.opponent.server.sendMessage("Your opponent " + g.name + ", play " + g.player.deck.cards.get(0).name + " hero.");
          			g.opponent.server.sendMessage("$OPPONENTCONNECTED(" + g.name + "," + g.player.deck.cards.get(0).name + "," + COIN_START + ")");
-         		
+         			g.isGameStart= true;
+         			g.opponent.isGameStart = true;
                     return true;
                 }
             }
