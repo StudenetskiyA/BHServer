@@ -42,6 +42,8 @@ public class Player extends Card {
         private boolean bbShield = false;
         int bonusToShoot = 0;
         int nightmare=0;
+        int shield=0;
+        int magicShield=0;
         
         Effects(Player _pl) {
             whis = _pl;
@@ -55,7 +57,18 @@ public class Player extends Card {
         	return bonusToShoot;
         }
         
-        //#TakeCreatureEffect(Player, CreatureNumOnBoard,Effect,EffectCount)
+        int getShield(){
+        	int b=0;
+        	if (whis.equpiment[0]!=null && whis.equpiment[0].text.contains("Герой получает Щит ")){
+        		b+= MyFunction.getNumericAfterText(whis.equpiment[0].text, "Герой получает Щит ");
+        	}
+        	return shield+b;
+        }
+        
+        int getMagicShield(){
+        	return magicShield;
+        }
+      
         void takeBBShield(boolean take) throws IOException {
             bbShield = take;
             int t = (take) ? 1 : 0;
@@ -417,16 +430,16 @@ public class Player extends Card {
         owner.opponent.printToView(1, Color.RED, "Ход противника");
 
         //Tull-Bagar
-        if (this.equpiment[3] != null && this.equpiment[3].name.equals("Пустошь Тул-Багара")) {
-            owner.printToView(0, "Пустошь Тул-Багара ранит всех героев.");
-            this.takeDamage(1, DamageSource.magic);
-            owner.opponent.player.takeDamage(1,DamageSource.magic);
-        }
-        if (owner.opponent.player.equpiment[3] != null && owner.opponent.player.equpiment[3].name.equals("Пустошь Тул-Багара")) {
-            owner.printToView(0, "Пустошь Тул-Багара ранит всех героев.");
-            this.takeDamage(1,DamageSource.magic);
-            owner.opponent.player.takeDamage(1,DamageSource.magic);
-        }
+//        if (this.equpiment[3] != null && this.equpiment[3].name.equals("Пустошь Тул-Багара")) {
+//            owner.printToView(0, "Пустошь Тул-Багара ранит всех героев.");
+//            this.takeDamage(1, DamageSource.magic);
+//            owner.opponent.player.takeDamage(1,DamageSource.magic);
+//        }
+//        if (owner.opponent.player.equpiment[3] != null && owner.opponent.player.equpiment[3].name.equals("Пустошь Тул-Багара")) {
+//            owner.printToView(0, "Пустошь Тул-Багара ранит всех героев.");
+//            this.takeDamage(1,DamageSource.magic);
+//            owner.opponent.player.takeDamage(1,DamageSource.magic);
+//        }
 
         //Search for upkeep played effects
 
@@ -462,8 +475,6 @@ public class Player extends Card {
             //untap
             p.isSummonedJust = false;
             p.untapCreature();
-            //armor
-            p.currentArmor = p.maxArmor;
             
             while (owner.gameQueue.size() != 0 || owner.opponent.gameQueue.size() != 0) {
                 owner.opponent.gameQueue.responseAllQueue();
@@ -521,7 +532,6 @@ public class Player extends Card {
 
         if (untappedCoin >= effectiveCost) {
             untappedCoin -= effectiveCost;
-           //owner.printToView(0, "Розыгрышь карты " + _card.name + ".");
             //remove from hand
             removeCardFromHand(num);
             //put on table or cast spell
@@ -598,36 +608,47 @@ public class Player extends Card {
 
     void takeDamage(int dmg, DamageSource dmgsrc) throws IOException {
         //equpiment[1]
-        if (equpiment[1] != null) {
-            if (equpiment[1].name.equals("Браслет подчинения")) {
-                //Плащ исхара
-                if (dmg != 1)
-                    owner.printToView(0, "Браслет подчинения свел атаку к 1.");
-                	owner.opponent.printToView(0, "Браслет подчинения свел атаку к 1.");
-                dmg = 1;
-            }
-        }
-        //equpiment[0]
-        if (equpiment[0] != null) {
-            if (equpiment[0].name.equals("Плащ Исхара")) {
-                //Плащ исхара
-                int tmp = dmg;
-                dmg -= equpiment[0].hp;
-                equpiment[0].hp -= tmp;
-                if (dmg < 0) dmg = 0;
-                //TODO Send equip effect
-                owner.sendBoth("#AddEquipEffectHP("+owner.player.playerName+","+"0"+","+equpiment[0].hp+")");
-                owner.printToView(0, "Плащ Исхара предотвратил " + (tmp - dmg) + " урона.");
-                owner.opponent.printToView(0, "Плащ Исхара предотвратил " + (tmp - dmg) + " урона.");
-                if (equpiment[0].hp <= 0) {
-                    removeEqupiment(equpiment[0]);
-                    equpiment[0] = null;
-                }
-            }
-        }
+//        if (equpiment[1] != null) {
+//            if (equpiment[1].name.equals("Браслет подчинения")) {
+//                //Плащ исхара
+//                if (dmg != 1)
+//                    owner.printToView(0, "Браслет подчинения свел атаку к 1.");
+//                	owner.opponent.printToView(0, "Браслет подчинения свел атаку к 1.");
+//                dmg = 1;
+//            }
+//        }
+//        //equpiment[0]
+//        if (equpiment[0] != null) {
+//            if (equpiment[0].name.equals("Плащ Исхара")) {
+//                //Плащ исхара
+//                int tmp = dmg;
+//                dmg -= equpiment[0].hp;
+//                equpiment[0].hp -= tmp;
+//                if (dmg < 0) dmg = 0;
+//                //TODO Send equip effect
+//                owner.sendBoth("#AddEquipEffectHP("+owner.player.playerName+","+"0"+","+equpiment[0].hp+")");
+//                owner.printToView(0, "Плащ Исхара предотвратил " + (tmp - dmg) + " урона.");
+//                owner.opponent.printToView(0, "Плащ Исхара предотвратил " + (tmp - dmg) + " урона.");
+//                if (equpiment[0].hp <= 0) {
+//                    removeEqupiment(equpiment[0]);
+//                    equpiment[0] = null;
+//                }
+//            }
+//        }
+    	
+    	  if (dmgsrc == DamageSource.physic) {
+              dmg -= effect.getShield();
+              if (dmg < 0) dmg = 0;
+          }
+          if (dmgsrc == DamageSource.magic) {
+              dmg -= effect.getMagicShield();
+              if (dmg < 0) dmg = 0;
+          }
+    	
         damage += dmg;
         if (dmg != 0) {
             owner.sendBoth("#TakeHeroDamage(" + playerName + "," + dmg + ")");
+            equpiment[0].takeDamage(1);
         }
 
         if (hp <= damage) {
@@ -728,11 +749,7 @@ public class Player extends Card {
     }
 
     public void removeEqupiment(Equpiment eq) throws IOException{
-    	owner.sendBoth("#RemoveEquip("+playerName+","+eq.id+")");
-    	addCardToGraveyard(eq);
-    	int n =  MyFunction.getEquipNumByType(eq.creatureType);
-    	System.out.println("EQ n= "+n);
-    	this.equpiment[n]=null;
+    	eq.die();
     }
 
     public int getNotNullEqupiment(){

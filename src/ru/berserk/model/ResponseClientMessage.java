@@ -222,7 +222,6 @@ public class ResponseClientMessage extends Thread {
                 } else {
                     Creature block = player.creatures.get(Integer.parseInt(parameter.get(3)));
                     //Fight with bocker
-                    block.blockThisTurn = true;
                     cr.fightCreature(block);
                     if (Integer.parseInt(parameter.get(4)) == 1) {
                         if (!block.getDefenseSkill())

@@ -12,14 +12,14 @@ public class Creature extends Card {
     boolean isTapped;
     boolean isSummonedJust;
     boolean activatedAbilityPlayed = false;
-    boolean takedDamageThisTurn = false;
-    boolean attackThisTurn = false;
-    boolean blockThisTurn = false;
+    
+    
 
     Player owner;
     Player trueOwner;//for change control
-    int currentArmor = 0;
-    int maxArmor = 0;
+   
+    int shield=0;
+    int magicShield=0;
     int damage;//taked damage
 
     enum DamageSource {fightOffense, fightDefense, spell, poison, ability, shoot, magic, physic}
@@ -31,7 +31,6 @@ public class Creature extends Card {
         String additionalText = "";
         boolean changedControll=false;
         boolean isDie = false;
-       // int poison = 0;
         int nightmare=0;
         private int bonusPower = 0;
         private int bonusPowerUEOT = 0;
@@ -245,12 +244,6 @@ void looseBonusPowerUEOT() throws IOException {
             owner.owner.sendBoth("#TakeCreatureIdEffect(" + whis.id + "," + MyFunction.Effect.bonusTougness.getValue() + "," + n + ")");
         }
 
-        void takeBonusArmor(int n) throws IOException {
-            bonusArmor += n;
-            currentArmor += n;
-            owner.owner.sendBoth("#TakeCreatureIdEffect(" + whis.id + "," + MyFunction.Effect.bonusArmor.getValue() + "," + n + ")");
-        }
-
         void takeAdditionalText(String txt) throws IOException {
             additionalText += txt;
             owner.owner.sendBoth("#TakeCreatureIdText(" + whis.id + "," + txt + ")");
@@ -290,11 +283,12 @@ void looseBonusPowerUEOT() throws IOException {
         if (isTapped) return false;
         return !MyFunction.textNotInTake(getText()).contains("Не может атаковать");
     }
+    
     boolean getCanBlock(){
         if (isTapped) return false;
-        if (blockThisTurn) return false;
         return !MyFunction.textNotInTake(getText()).contains("Не может блокировать");
     }
+    
     boolean getIsSummonedJust() {
         if (text.contains("Рывок")) return false;
         if (effects.additionalText.contains("Рывок")) return false;
@@ -325,6 +319,8 @@ void looseBonusPowerUEOT() throws IOException {
         return false;
     }
 
+    
+    
 //    boolean getTargetStrike() {
 //        if (MyFunction.isInOwnTextNotInTake(text, "Направленный удар")) return true;
 //        if (effects.additionalText.contains("Направленный удар")) return true;
@@ -337,14 +333,14 @@ void looseBonusPowerUEOT() throws IOException {
         return false;
     }
 
-    int getMaxArmor() {
-        return maxArmor + effects.bonusArmor;
+    int getShield() {
+        return shield;// + effects.getBonusShield();
     }
-
-    public int getCurrentArmor() {
-        return currentArmor;
+    
+    int getMagicShield() {
+        return magicShield;// + effects.getBonusShield();
     }
-
+    
     int getPower() {
         return power + effects.getBonusPower();
     }
@@ -363,12 +359,9 @@ void looseBonusPowerUEOT() throws IOException {
         owner = _card.owner;
         trueOwner= _card.owner;
         effects = new Effects(_card,_card.effects);
-        takedDamageThisTurn = _card.takedDamageThisTurn;
-        attackThisTurn = _card.attackThisTurn;
-        blockThisTurn = _card.blockThisTurn;
         id = _card.id;
-        currentArmor = _card.currentArmor;
-        maxArmor = _card.maxArmor;
+        shield = _card.shield;
+        magicShield = _card.magicShield;
         damage = _card.damage;
     }
 
@@ -382,9 +375,11 @@ void looseBonusPowerUEOT() throws IOException {
         name = _card.name;
         owner = _owner;
         trueOwner = _owner;
-        if (text.contains("Броня ")) {
-            maxArmor = MyFunction.getNumericAfterText(text, "Броня ");
-            currentArmor = getMaxArmor();
+        if (text.contains("Щит ")) {
+            shield = MyFunction.getNumericAfterText(text, "Щит ");
+        }
+        if (text.contains("Магический щит ")) {
+            magicShield = MyFunction.getNumericAfterText(text, "Магический щит ");
         }
     }
 
@@ -496,9 +491,7 @@ void looseBonusPowerUEOT() throws IOException {
 
         owner.owner.sendBoth("#Attack(" + owner.playerName + "," + owner.getNumberOfCreature(this) + ",-1)");
 
-        if (!getAttackSkill())
             tapCreature();
-        attackThisTurn = true;
 
             ArrayList<Creature> blocker = canAnyoneBlock(null);
             if (blocker.size() != 0) {
@@ -516,53 +509,42 @@ void looseBonusPowerUEOT() throws IOException {
 
     void takeDamage(int dmg, Card damageSrc, DamageSource dmgsrc, Boolean... rage) throws IOException {
         //Protection from.
-        if (this.isContainsOwn("Не получает ран")) {
-            owner.owner.printToView(0, this.name + " не получает ран.");
-            return;
-        }
-        if (this.isContainsOwn("Не получает от ударов ран") && (dmgsrc == DamageSource.fightDefense || dmgsrc==DamageSource.fightOffense)) {
-            owner.owner.printToView(0, this.name + " не получает от ударов ран.");
-            return;
-        }
-        if (this.isContainsOwn("Защита от выстрелов") && dmgsrc == DamageSource.shoot) {
-            owner.owner.printToView(0, "У " + this.name + " защита от выстрелов.");
-            return;
-        }
-        if (this.isContainsOwn("Защита от атак") && (dmgsrc == DamageSource.shoot || dmgsrc == DamageSource.fightDefense)) {
-            if (this.isContainsOwn("Защита от атак цвет ")) {
-                int c = MyFunction.getNumericAfterText(this.getText(), "Защита от атак цвет ");
-                if (damageSrc.color == c) {
-                    owner.owner.printToView(0, "У " + this.name + " защита от атак " + damageSrc.name + ".");
-                    return;
-                }
-            }
-            if (this.isContainsOwn("Защита от атак стоимость менее ")) {
-                int c = MyFunction.getNumericAfterText(this.getText(), "Защита от атак стоимость менее ");
-                if (this.getCost(this.owner) < c) {
-                    owner.owner.printToView(0, "У " + this.name + " защита от атак " + damageSrc.name + ".");
-                    return;
-                }
-            }
-        }
+//        if (this.isContainsOwn("Не получает ран")) {
+//            owner.owner.printToView(0, this.name + " не получает ран.");
+//            return;
+//        }
+//        if (this.isContainsOwn("Не получает от ударов ран") && (dmgsrc == DamageSource.fightDefense || dmgsrc==DamageSource.fightOffense)) {
+//            owner.owner.printToView(0, this.name + " не получает от ударов ран.");
+//            return;
+//        }
+//        if (this.isContainsOwn("Защита от атак") && (dmgsrc == DamageSource.shoot || dmgsrc == DamageSource.fightDefense)) {
+//            if (this.isContainsOwn("Защита от атак цвет ")) {
+//                int c = MyFunction.getNumericAfterText(this.getText(), "Защита от атак цвет ");
+//                if (damageSrc.color == c) {
+//                    owner.owner.printToView(0, "У " + this.name + " защита от атак " + damageSrc.name + ".");
+//                    return;
+//                }
+//            }
+//            if (this.isContainsOwn("Защита от атак стоимость менее ")) {
+//                int c = MyFunction.getNumericAfterText(this.getText(), "Защита от атак стоимость менее ");
+//                if (this.getCost(this.owner) < c) {
+//                    owner.owner.printToView(0, "У " + this.name + " защита от атак " + damageSrc.name + ".");
+//                    return;
+//                }
+//            }
+//        }
 
-        if (dmgsrc == DamageSource.shoot || dmgsrc==DamageSource.fightOffense || dmgsrc == DamageSource.fightDefense) {
-            if ((takedDamageThisTurn) && (rage[0])) {
-                dmg++;
-                // System.out.println("RAGE!");
-            }
-            int tmp = dmg;
-            dmg -= currentArmor;
-            currentArmor -= tmp;
+        if (dmgsrc == DamageSource.physic) {
+            dmg -= getShield();
             if (dmg < 0) dmg = 0;
-            if (currentArmor < 0) currentArmor = 0;
         }
-        if ((effects.getVulnerability())) dmg++;
-
+        if (dmgsrc == DamageSource.magic) {
+            dmg -= getMagicShield();
+            if (dmg < 0) dmg = 0;
+        }
+        
         damage += dmg;
-       // owner.owner.sendBoth("#TakeCreatureDamage(" + owner.playerName + "," + owner.getNumberOfCreature(this) + "," "+ dmg + ")");
         owner.owner.sendBoth("#TakeCreatureDamage(" + owner.playerName + "," + this.id+","+ dmg + ")");
-
-        takedDamageThisTurn = true;
 
         if (getTougness() <= damage) {
             die();

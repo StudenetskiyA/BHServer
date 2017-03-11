@@ -8,6 +8,22 @@ public class Equpiment extends Card {
     public boolean isTapped;
     public Player owner;
 
+    public void takeDamage(int damage) throws IOException{
+    	hp-=damage;
+    	int n =  MyFunction.getEquipNumByType(this.creatureType);
+    	owner.owner.sendBoth("#AddEquipEffectHP("+owner.playerName+","+n+","+this.hp+")");
+    	if (hp<=0) {
+             die();	
+    	}
+    }
+    
+    public void die() throws IOException{
+    	owner.owner.sendBoth("#RemoveEquip("+owner.playerName+","+this.id+")");
+    	owner.addCardToGraveyard(this);
+    	int n =  MyFunction.getEquipNumByType(this.creatureType);
+    	System.out.println("EQ n= "+n);
+    	owner.equpiment[n]=null;	
+    }
     
     public Equpiment(Card _card, Player _owner) {
         super(_card.cost, _card.name, _card.creatureType, _card.color, _card.type, _card.targetType, _card.tapTargetType, _card.text, _card.power, _card.hp);

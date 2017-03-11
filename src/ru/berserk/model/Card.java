@@ -343,6 +343,8 @@ class Card {
             return new Card(2, name, "", 6, 1, 3, 0, "Физический удар-убийство на 2.", 0, 0);
 	    case "Гелрос":
             return new Card(0, name, "", 6, 0, 0, 3, "ТАПТ:3 Нанести физикой ран 1. Убийство: Стать активным.", 0, 24);
+	    case "Щит совы":
+            return new Card(1, name, "Броня", 1, 3, 0, 0, "Герой получает Щит 1.", 0, 4);
         default:
 			System.out.println("Ошибка - Неопознанная карта:" + name);
 			return null;
@@ -364,6 +366,9 @@ class Card {
 			if (_cr != null) {
 				_cr.takeDamage(dmg, _who, Creature.DamageSource.physic);
 				if (_cr.isDie()) {
+					if (_whoCr!=null) _whoCr.killing();
+					else _whis.killing();
+					
 					owner.setPlayerGameStatus(MyFunction.PlayerStatus.choiceTarget);
                     owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceTarget);
                     owner.activatedAbility.whatAbility = WhatAbility.spellAbility;
@@ -412,7 +417,6 @@ class Card {
 			}
 		}
 		if (txt.contains("Стать активным")) {
-			
 			if (_cr!=null)
 			_cr.untapCreature();
 			else 
@@ -598,20 +602,18 @@ class Card {
 			int dmg = MyFunction.getNumericAfterText(txt, "Выбранное существо до конца хода получает к атаке + ");
 			_cr.effects.takeBonusPowerUEOT(dmg);
 		}
-		if (txt.contains("Получает к броне + ")) {
-			int dmg = MyFunction.getNumericAfterText(txt, "Получает к броне + ");
-			_cr.effects.takeBonusArmor(dmg);
-		}
-		if (txt.contains("Получает +Х к удару и Броню Х, где Х - число других ваших существ."))	{
-			int dmg = _cr.owner.creatures.size() - 1;
-			if (dmg > 0) {
-				_cr.effects.takeBonusPower(dmg);
-				_cr.effects.takeBonusArmor(dmg);
-			}
-		}
-		if (txt.contains("Получает к атаке + "))
-
-		{
+//		if (txt.contains("Получает к броне + ")) {
+//			int dmg = MyFunction.getNumericAfterText(txt, "Получает к броне + ");
+//			_cr.effects.takeBonusArmor(dmg);
+//		}
+//		if (txt.contains("Получает +Х к удару и Броню Х, где Х - число других ваших существ."))	{
+//			int dmg = _cr.owner.creatures.size() - 1;
+//			if (dmg > 0) {
+//				_cr.effects.takeBonusPower(dmg);
+//				_cr.effects.takeBonusArmor(dmg);
+//			}
+//		}
+		if (txt.contains("Получает к атаке + ")) {
 			int dmg = MyFunction.getNumericAfterText(txt, "Получает к атаке + ");
 			_cr.effects.takeBonusPower(dmg);
 		}
