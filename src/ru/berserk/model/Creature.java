@@ -195,7 +195,7 @@ public class Creature extends Card {
     }
 
         void takeBonusToScoot(int p) throws IOException {
-            bonusToShoot = p;
+            bonusToShoot += p;
             owner.owner.sendBoth("#TakeCreatureIdEffect(" + whis.id + "," + MyFunction.Effect.bonusToShoot.getValue() + "," + p + ")");
         }
 

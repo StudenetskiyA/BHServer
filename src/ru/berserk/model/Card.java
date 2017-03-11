@@ -345,7 +345,9 @@ class Card {
             return new Card(0, name, "", 6, 0, 0, 3, "ТАПТ:3 Нанести физикой ран 1. Убийство: Стать активным.", 0, 24);
 	    case "Щит совы":
             return new Card(1, name, "Броня", 1, 3, 0, 0, "Герой получает Щит 1.", 0, 4);
-        default:
+	    case "Дроу-арбалетчик":
+            return new Card(4, name, "", 6, 2, 3, 0, "Наймт: Нанести физикой ран 1. Повторить раз 3. Убийство: Получить плюс к выстрелам 1.", 2, 2);
+	    default:
 			System.out.println("Ошибка - Неопознанная карта:" + name);
 			return null;
 		}
@@ -406,6 +408,7 @@ class Card {
 		}
 		if (txt.contains("Нанести физикой ран ")) {
 			int dmg = MyFunction.getNumericAfterText(txt, "Нанести физикой ран ");
+			if (_whoCr!=null) dmg+=_whoCr.effects.getBonusToShoot();
 			if (_cr != null) {
 				_cr.takeDamage(dmg, _who, Creature.DamageSource.physic);
 				if (_cr.isDie()) {
@@ -415,6 +418,13 @@ class Card {
 			} else {
 				_pl.takeDamage(dmg,DamageSource.physic);
 			}
+		}
+		if (txt.contains("Получить плюс к выстрелам ")) {
+			int dmg = MyFunction.getNumericAfterText(txt, "Получить плюс к выстрелам ");
+			if (_cr!=null)
+			_cr.effects.takeBonusToScoot(dmg);
+			else 
+				_whis.effect.takeBonusToShoot(true, dmg);
 		}
 		if (txt.contains("Стать активным")) {
 			if (_cr!=null)
@@ -473,10 +483,6 @@ class Card {
 		}
 		if (txt.contains("Получить щит ББ.")) {
 			_whis.effect.takeBBShield(true);
-		}
-		if (txt.contains("Получить плюс к выстрелам на ")) {
-			int dmg = MyFunction.getNumericAfterText(txt, "Получить плюс к выстрелам на ");
-			_whis.effect.takeBonusToShoot(true, dmg);
 		}
 		if (txt.contains("Лики-абилка.")) {// Only for player, who called it.
 			if (_whis.playerName.equals(owner.name)) {

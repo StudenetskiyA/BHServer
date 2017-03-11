@@ -648,6 +648,7 @@ public class Player extends Card {
         damage += dmg;
         if (dmg != 0) {
             owner.sendBoth("#TakeHeroDamage(" + playerName + "," + dmg + ")");
+            if (equpiment[0]!=null)
             equpiment[0].takeDamage(1);
         }
 
