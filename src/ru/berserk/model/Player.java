@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.ListIterator;
 
 import ru.berserk.model.MyFunction.WhatAbility.*;
+import ru.berserk.model.Creature.DamageSource;
 import ru.berserk.model.MyFunction.WhatAbility;
 
 // Created by StudenetskiyA on 30.12.2016.
@@ -40,7 +41,8 @@ public class Player extends Card {
         String additionalText = "";
         private boolean bbShield = false;
         int bonusToShoot = 0;
-
+        int nightmare=0;
+        
         Effects(Player _pl) {
             whis = _pl;
         }
@@ -58,6 +60,12 @@ public class Player extends Card {
             bbShield = take;
             int t = (take) ? 1 : 0;
             owner.sendBoth("#TakePlayerEffect(" + playerName + "," + MyFunction.EffectPlayer.bbShield.getValue() + "," + t + ")");
+        }
+        
+        void takeNightmare(boolean take,int n) throws IOException {
+            nightmare = (take) ? n:0 ;
+            int t = (take) ? 1 : 0;
+            owner.sendBoth("#TakePlayerEffect(" + playerName + "," + MyFunction.EffectPlayer.nightmare.getValue() + "," + t + ")");
         }
         
         void takeBonusToShoot(boolean take,int n) throws IOException {
@@ -358,9 +366,9 @@ public class Player extends Card {
                 tmp.battlecryNoTarget();
                 tmp.effects.battlecryPlayed = true;
             }
-            if (tmp.text.contains("Наймт:") && !tmp.effects.battlecryPlayed && !tmp.isDie())
+            if (tmp.text.contains("Наймт:") && !tmp.effects.battlecryPlayed && !tmp.isDie()) 
                 //CHECK EXIST TARGET
-                if (MyFunction.canTargetComplex(this, tmp)) {
+                if (MyFunction.canTargetComplex(this, tmp,MyFunction.getTextBetweenSymbol(tmp.text,"Наймт:","."))) {
                     owner.setPlayerGameStatus(MyFunction.PlayerStatus.choiceTarget);
                     owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceTarget);
                     owner.activatedAbility.creature = tmp;
@@ -411,13 +419,13 @@ public class Player extends Card {
         //Tull-Bagar
         if (this.equpiment[3] != null && this.equpiment[3].name.equals("Пустошь Тул-Багара")) {
             owner.printToView(0, "Пустошь Тул-Багара ранит всех героев.");
-            this.takeDamage(1);
-            owner.opponent.player.takeDamage(1);
+            this.takeDamage(1, DamageSource.magic);
+            owner.opponent.player.takeDamage(1,DamageSource.magic);
         }
         if (owner.opponent.player.equpiment[3] != null && owner.opponent.player.equpiment[3].name.equals("Пустошь Тул-Багара")) {
             owner.printToView(0, "Пустошь Тул-Багара ранит всех героев.");
-            this.takeDamage(1);
-            owner.opponent.player.takeDamage(1);
+            this.takeDamage(1,DamageSource.magic);
+            owner.opponent.player.takeDamage(1,DamageSource.magic);
         }
 
         //Search for upkeep played effects
@@ -447,14 +455,16 @@ public class Player extends Card {
             if (p.text.contains("В начале хода") || p.text.contains("В начале вашего хода") && !p.isDie() && isOnBoard) {
                 owner.gameQueue.push(new GameQueue.QueueEvent("Upkeep", p, 0));
             }
-            if (p.effects.poison != 0 && !p.text.contains("Защита от отравления.") && !p.isDie() && isOnBoard) {
-                p.takeDamage(p.effects.poison, p, Creature.DamageSource.poison);
-                //It may push die to queue.
-            }
             if (p.effects.turnToDie == 0 && !p.isDie() && isOnBoard) {
                 p.effects.takeDieEffect();
                 owner.gameQueue.push(new GameQueue.QueueEvent("Die", p, 0));
             }
+            //untap
+            p.isSummonedJust = false;
+            p.untapCreature();
+            //armor
+            p.currentArmor = p.maxArmor;
+            
             while (owner.gameQueue.size() != 0 || owner.opponent.gameQueue.size() != 0) {
                 owner.opponent.gameQueue.responseAllQueue();
                 owner.gameQueue.responseAllQueue();
@@ -470,18 +480,6 @@ public class Player extends Card {
         if (equpiment[0] != null) equpiment[0].untap();
         if (equpiment[1] != null) equpiment[1].untap();
         if (equpiment[2] != null) equpiment[2].untap();
-
-        for (int i = creatures.size() - 1; i >= 0; i--) {
-            //untap
-            creatures.get(i).isSummonedJust = false;
-            creatures.get(i).untapCreature();
-            //armor
-            creatures.get(i).currentArmor = creatures.get(i).maxArmor;
-            //for rage
-            creatures.get(i).takedDamageThisTurn = false;
-            creatures.get(i).attackThisTurn = false;
-            creatures.get(i).blockThisTurn = false;
-        }
 
         //Draw
         if (owner.board.turnCount != 1) {//First player not draw card in first turn. It's rule.
@@ -598,7 +596,7 @@ public class Player extends Card {
         removeCardFromGraveyard(c);
     }
 
-    void takeDamage(int dmg) throws IOException {
+    void takeDamage(int dmg, DamageSource dmgsrc) throws IOException {
         //equpiment[1]
         if (equpiment[1] != null) {
             if (equpiment[1].name.equals("Браслет подчинения")) {
@@ -630,7 +628,6 @@ public class Player extends Card {
         damage += dmg;
         if (dmg != 0) {
             owner.sendBoth("#TakeHeroDamage(" + playerName + "," + dmg + ")");
-            owner.printToView(0, this.name + " получет " + dmg + " урона.");
         }
 
         if (hp <= damage) {
@@ -700,6 +697,13 @@ public class Player extends Card {
         Card.ability(owner, this, this, null, _cr, _pl, txt);
     }
 
+    void killing() throws IOException{
+    	if (text.contains("Убийство: ")){
+    		String txt =this.text.substring(this.text.indexOf("Убийство: ") + "Убийство: ".length() + 1, this.text.indexOf(".", this.text.indexOf("Убийство: ") + 1));
+    		Card.ability(owner, this, this, null, null, null, txt);
+    	}
+    }
+    
     public Card searchInGraveyard(String name) {
         for (int i = 0; i <= graveyard.size(); i++) {
             if (graveyard.get(i).name.equals(name)) return graveyard.get(i);
@@ -715,6 +719,10 @@ public class Player extends Card {
 
     public void untap() throws IOException {
         owner.sendBoth("#TapPlayer(" + playerName + ",0)");
+        if (this.effect.nightmare!=0) {
+      	  this.takeDamage(this.effect.nightmare, Creature.DamageSource.magic);
+      	  this.effect.takeNightmare(false, 0);
+      }
         isTapped = false;
     }
 

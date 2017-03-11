@@ -49,6 +49,7 @@ public class Gamer {
 	String choiceXname;
     //For spell what aks to choice creature
 	Creature choiceCreature;
+	Player choicePlayer;
 	ServerEndpointDemo server;
 	boolean isGameStart = false;
 
@@ -384,13 +385,11 @@ public class Gamer {
 	}
 
 	void sendChoiceForSpell(int targetType, int cost, String message) {
-		// #ChoiceForSpell(PlayerName,Status,TargetType,costN-,message)
+		// #ChoiceForSpell(PlayerName,TargetType,message)
 		System.out.println("Sending choice for spell to " + player.playerName);
 		String s = "#ChoiceForSpell(";
 		s += player.playerName + ",";
-		s += status.getValue() + ",";
 		s += targetType + ",";
-		s += cost + ",";
 		s += message + ")";
 		try {
 			server.sendMessage(s);

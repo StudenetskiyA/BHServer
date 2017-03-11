@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.ListIterator;
 
+import ru.berserk.model.Creature.DamageSource;
 import ru.berserk.model.MyFunction.PlayerStatus;
+import ru.berserk.model.MyFunction.WhatAbility;
 
 // Created by StudenetskiyA on 30.12.2016.
 
@@ -333,7 +335,13 @@ class Card {
             return new Card(7, name, "Зверь", 2, 2, 0, 0, "В конце хода если не имеет ран, вернуть его в руку.", 6, 8);
 	    case "Орк-арбалетчик":
                return new Card(5, name, "Орк", 2, 2, 3, 0, "Наймт: Выстрел на 1. Цель не обязательно. Повторить раз 5, без повторов.", 5, 3);
-       default:
+	    case "Солдат дроу":
+            return new Card(1, name, "", 6, 2, 0, 0, "Ловкость.", 2, 1);
+	    case "Воин дроу":
+            return new Card(2, name, "", 6, 2, 0, 0, "Ловкость. Убийство: Стать активным.", 2, 1);
+	    case "Удар дроу":
+            return new Card(2, name, "", 6, 1, 3, 0, "Физический удар-убийство на 2.", 0, 0);
+	    default:
 			System.out.println("Ошибка - Неопознанная карта:" + name);
 			return null;
 		}
@@ -349,6 +357,66 @@ class Card {
 		// Super function! Do all what do cards text!
 		// Which Card player(_who), who player(_whis), on what creature(_cr, may
 		// null), on what player(_pl, may null), text to play(txt)
+		if (txt.contains("Физический удар-убийство на ") ) {
+			int dmg = MyFunction.getNumericAfterText(txt, "Физический удар-убийство на ");
+			if (_cr != null) {
+				_cr.takeDamage(dmg, _who, Creature.DamageSource.physic);
+				if (_cr.isDie()) {
+					owner.setPlayerGameStatus(MyFunction.PlayerStatus.choiceTarget);
+                    owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceTarget);
+                    owner.activatedAbility.whatAbility = WhatAbility.spellAbility;
+                    owner.activatedAbility.ableAbility=true;
+                    //pause until player choice target.
+                    owner.sendChoiceForSpell(3, 0, _who.name + " просит выбрать цель.");
+                    System.out.println("pause");
+                    synchronized (owner.cretureDiedMonitor) {
+                        try {
+                            owner.cretureDiedMonitor.wait();
+                        } catch (InterruptedException e2) {
+                            e2.printStackTrace();
+                        }
+                    }
+                    System.out.println("resume");
+                    owner.setPlayerGameStatus(MyFunction.PlayerStatus.MyTurn);
+                    owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyTurn);
+					ability(owner,_who,_whis,null, owner.choiceCreature, owner.choicePlayer, "Нанести физикой ран "+dmg);
+				}
+			} else {
+				_pl.takeDamage(dmg,DamageSource.physic);
+			}
+		}
+		if (txt.contains("Нанести магией ран ")) {
+			int dmg = MyFunction.getNumericAfterText(txt, "Нанести магией ран ");
+			if (_cr != null) {
+				_cr.takeDamage(dmg, _who, Creature.DamageSource.magic);
+				if (_cr.isDie()) {
+					if (_whoCr!=null) _whoCr.killing();
+					else _whis.killing();
+				}
+			} else {
+				_pl.takeDamage(dmg,DamageSource.magic);
+			}
+		}
+		if (txt.contains("Нанести физикой ран ")) {
+			int dmg = MyFunction.getNumericAfterText(txt, "Нанести физикой ран ");
+			if (_cr != null) {
+				_cr.takeDamage(dmg, _who, Creature.DamageSource.physic);
+				if (_cr.isDie()) {
+					if (_whoCr!=null) _whoCr.killing();
+					else _whis.killing();
+				}
+			} else {
+				_pl.takeDamage(dmg,DamageSource.physic);
+			}
+		}
+		if (txt.contains("Стать активным")) {
+			
+			if (_cr!=null)
+			_cr.untapCreature();
+			else 
+				_whis.untap();
+		}
+		//OLD
 		if (txt.contains("Закрыться.")) {// Only here - _cr=_who to get access
 			_cr.tapCreature();
 			owner.printToView(0, _cr.name + " закрывается.");
@@ -567,7 +635,7 @@ class Card {
 				_cr.takeDamage(dmg, _who, Creature.DamageSource.ability);
 			} else {
 				owner.printToView(0, _who.name + " ранит " + _pl.name + " на " + dmg + ".");
-				_pl.takeDamage(dmg);
+				_pl.takeDamage(dmg,DamageSource.magic);
 			}
 		}
 		if (txt.contains("Жажда ")) {
@@ -577,27 +645,27 @@ class Card {
 				_cr.takeDamage(dmg, _who, Creature.DamageSource.ability);
 			} else {
 				owner.printToView(0, _who.name + " жаждит " + _pl.name + " на " + dmg + ".");
-				_pl.takeDamage(dmg);
+				_pl.takeDamage(dmg,DamageSource.magic);
 			}
 		}
 		if (txt.contains("Ранить выбранного героя на ")) {
 			int dmg = MyFunction.getNumericAfterText(txt, "Ранить выбранного героя на ");
 			owner.printToView(0, _pl.playerName + " получил " + dmg + " урона.");
-			_pl.takeDamage(dmg);
+			_pl.takeDamage(dmg,DamageSource.magic);
 
 		}
 		if (txt.contains("Ранить героя противника на ")) {
 			int dmg = MyFunction.getNumericAfterText(txt, "Ранить героя противника на ");
 			owner.printToView(0, _whis.owner.opponent.player.playerName + " получил " + dmg + " урона.");
-			_whis.owner.opponent.player.takeDamage(dmg);
+			_whis.owner.opponent.player.takeDamage(dmg,DamageSource.magic);
 
 		}
-		if (txt.contains("Уничтожьте отравленное существо.")) {
-			if (_cr.effects.poison > 0) {
-				owner.printToView(0, _who.name + " уничтожает " + _cr.name + ".");
-				_cr.die();
-			}
-		}
+//		if (txt.contains("Уничтожьте отравленное существо.")) {
+//			if (_cr.effects.poison > 0) {
+//				owner.printToView(0, _who.name + " уничтожает " + _cr.name + ".");
+//				_cr.die();
+//			}
+//		}
 		if (txt.contains("Ранить существо без ран на ")) {
 			int dmg = MyFunction.getNumericAfterText(txt, "Ранить существо без ран на ");
 			if (_cr != null && _cr.damage == 0) {
@@ -615,7 +683,7 @@ class Card {
 		if (txt.contains("Ранить на остаток выбранное существо и своего героя на столько же")) {
 			int dmg = _cr.getTougness() - _cr.damage;
 			_cr.takeDamage(dmg, _who, Creature.DamageSource.ability);
-			_whis.takeDamage(dmg);
+			_whis.takeDamage(dmg,DamageSource.magic);
 		}
 		if (txt.contains("Выбранное существо не может атаковать и выступать защитником до конца следующего хода."))	{
 			_cr.effects.takeTemporaryAdditionalText("Не может атаковать. Не может блокировать.", 2);
@@ -694,19 +762,19 @@ class Card {
 				owner.setPlayerGameStatus(PlayerStatus.MyTurn);
 			}
 		}
-		if (txt.contains("Отравить+ выбранное существо на ")) {
-			int dmg = MyFunction.getNumericAfterText(txt, "Отравить+ выбранное существо на ");
-			if (_cr.effects.poison != 0) {
-				_cr.effects.takePoison(_cr.effects.poison + dmg);
-			} else {
-				if (_cr.effects.poison <= dmg)
-					_cr.effects.takePoison(dmg);
-			}
-		}
-		if (txt.contains("Отравить выбранное существо на ")) {
-			int dmg = MyFunction.getNumericAfterText(txt, "Отравить выбранное существо на ");
-			_cr.effects.takePoison(dmg);
-		}
+//		if (txt.contains("Отравить+ выбранное существо на ")) {
+//			int dmg = MyFunction.getNumericAfterText(txt, "Отравить+ выбранное существо на ");
+//			if (_cr.effects.poison != 0) {
+//				_cr.effects.takePoison(_cr.effects.poison + dmg);
+//			} else {
+//				if (_cr.effects.poison <= dmg)
+//					_cr.effects.takePoison(dmg);
+//			}
+//		}
+//		if (txt.contains("Отравить выбранное существо на ")) {
+//			int dmg = MyFunction.getNumericAfterText(txt, "Отравить выбранное существо на ");
+//			_cr.effects.takePoison(dmg);
+//		}
 		if (txt.contains(("Излечить вашего героя на "))) {
 			int dmg = MyFunction.getNumericAfterText(txt, "Излечить вашего героя на ");
 			_whis.heal(dmg);
@@ -799,7 +867,7 @@ class Card {
 			else {dmg+=_whis.effect.getBonusToShoot();}
 			
 			owner.printToView(0, _who.name + " стреляет на " + dmg + " по " + _cr.name);
-			_cr.takeDamage(dmg, _who, Creature.DamageSource.scoot, _who.haveRage());
+			_cr.takeDamage(dmg, _who, Creature.DamageSource.shoot, _who.haveRage());
 		}
 		if (txt.contains("Выстрел на ")) {
 			int dmg = MyFunction.getNumericAfterText(txt, "Выстрел на ");
@@ -808,12 +876,12 @@ class Card {
 			
 			if (_cr != null) {
 				owner.printToView(0, _who.name + " стреляет на " + dmg + " по " + _cr.name);
-				_cr.takeDamage(dmg, _who, Creature.DamageSource.scoot, _who.haveRage());
+				_cr.takeDamage(dmg, _who, Creature.DamageSource.shoot, _who.haveRage());
 
 			} else {
 				_pl.effect.takeBBShield(false);
 				owner.printToView(0, _who.name + " стреляет на " + dmg + " по " + _pl.name);
-				_pl.takeDamage(dmg);
+				_pl.takeDamage(dmg,DamageSource.magic);
 			}
 		}
 	}

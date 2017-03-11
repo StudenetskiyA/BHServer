@@ -97,6 +97,29 @@ public class ResponseClientMessage extends Thread {
             synchronized (gamer.yesNoChoiceMonitor) {
                 gamer.yesNoChoiceMonitor.notify();
             }
+        } else if (fromServer.startsWith("$SPELLCHOICETARGET(")) {
+            ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
+            if (parameter.get(0).equals("0"))
+            {
+            	if (parameter.get(1).equals("-1")){
+            		gamer.choiceCreature=null;
+            		gamer.choicePlayer=player;
+            	}
+            	else {
+            		 gamer.choiceCreature = Board.getCreatureById(player, parameter.get(1));
+            	}
+            }
+            else {
+            	if (parameter.get(1).equals("-1")){
+            		gamer.choiceCreature=null;
+            		gamer.choicePlayer=player.owner.opponent.player;
+            	}
+            	else {
+            		 gamer.choiceCreature = Board.getCreatureById(player, parameter.get(1));
+            	}
+            }
+            dontDoQueue = true;
+            freeMonitor = true;
         } else if (fromServer.startsWith("$CHOICEYESNO(")) {
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
             gamer.choiceYesNo = Integer.parseInt(parameter.get(0));

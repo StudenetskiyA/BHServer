@@ -120,7 +120,7 @@ public class MyFunction {
     }
 
     enum EffectPlayer{
-        bbShield(1), bonusToShoot(2);
+        bbShield(1), bonusToShoot(2), nightmare(3);
 
         private final int value;
 
@@ -138,14 +138,16 @@ public class MyFunction {
                     return bbShield;
                 case 2: 
                 	return bonusToShoot;
+                case 3:
+                	return nightmare;
             }
             return null;
         }
     }
 
     enum Effect{
-        poison(1), vulnerability(2),turnToDie(3), die(4), bonusPowerUEOT(5), bonusPower(6), bonusTougnessUEOT(7), bonusTougness(8),
-        bonusArmor(9), cantattackandblock(10), controlChanged(11), notOpenAtBeginNextTurn(12), bonusToShoot(13);
+        vulnerability(2),turnToDie(3), die(4), bonusPowerUEOT(5), bonusPower(6), bonusTougnessUEOT(7), bonusTougness(8),
+        bonusArmor(9), cantattackandblock(10), controlChanged(11), notOpenAtBeginNextTurn(12), bonusToShoot(13), nightmare(1);
 
         private final int value;
 
@@ -160,7 +162,7 @@ public class MyFunction {
         public static Effect fromInteger(int x) {
             switch(x) {
                 case 1:
-                    return poison;
+                    return nightmare;
                 case 2:
                     return vulnerability;
                 case 3:
@@ -249,7 +251,17 @@ public class MyFunction {
     }
 
     public static boolean canTargetComplex(Player pl, Creature cr){
+    return canTargetComplex(pl,cr,"");
+    }
+    
+    public static boolean canTargetComplex(Player pl, Creature cr, String ability){
         boolean canTarget=false;
+        //BB shield
+        if (pl.owner.opponent.player.effect.getBBShield() && (cr.targetType==1 || cr.targetType==4) 
+        		&& ability.contains("Выстрел"))
+        {
+        	return false;
+        }
         if (pl.getNumberOfAlivedCreatures() > 0 && MyFunction.canTarget(MyFunction.Target.myCreature,cr.targetType)) {
             if (cr.targetType==12) {
                 if (pl.getNumberOfAlivedCreatures() > 1) return true;
