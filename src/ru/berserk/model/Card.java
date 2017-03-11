@@ -341,7 +341,9 @@ class Card {
             return new Card(2, name, "", 6, 2, 0, 0, "Ловкость. Убийство: Стать активным.", 2, 1);
 	    case "Удар дроу":
             return new Card(2, name, "", 6, 1, 3, 0, "Физический удар-убийство на 2.", 0, 0);
-	    default:
+	    case "Гелрос":
+            return new Card(0, name, "", 6, 0, 0, 3, "ТАПТ:3 Нанести физикой ран 1. Убийство: Стать активным.", 0, 24);
+        default:
 			System.out.println("Ошибка - Неопознанная карта:" + name);
 			return null;
 		}

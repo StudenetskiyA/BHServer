@@ -340,7 +340,6 @@ public class ResponseClientMessage extends Thread {
             dontDoQueue = true;
         }
 
-
         if (!dontDoQueue) {
             while(gamer.gameQueue.size()!=0 || gamer.opponent.gameQueue.size()!=0) {
             	if (!revertQueue){

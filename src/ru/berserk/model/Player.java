@@ -698,8 +698,9 @@ public class Player extends Card {
     }
 
     void killing() throws IOException{
+    	System.out.println("Killing!");
     	if (text.contains("Убийство: ")){
-    		String txt =this.text.substring(this.text.indexOf("Убийство: ") + "Убийство: ".length() + 1, this.text.indexOf(".", this.text.indexOf("Убийство: ") + 1));
+    		String txt =this.text.substring(this.text.indexOf("Убийство: ") + "Убийство: ".length(), this.text.indexOf(".", this.text.indexOf("Убийство: ") + 1));
     		Card.ability(owner, this, this, null, null, null, txt);
     	}
     }
