@@ -347,7 +347,9 @@ class Card {
             return new Card(1, name, "Броня", 1, 3, 0, 0, "Герой получает Щит 1.", 0, 4);
 	    case "Дроу-арбалетчик":
             return new Card(4, name, "", 6, 2, 3, 0, "Наймт: Нанести физикой ран 1. Повторить раз 3. Убийство: Получить плюс к выстрелам 1.", 2, 2);
-	    default:
+	    case "Морфианна":
+            return new Card(0, name, "", 3, 0, 0, 3, "ТАПТ:2 Персонаж получает Кошмар 2.", 0, 26);
+       default:
 			System.out.println("Ошибка - Неопознанная карта:" + name);
 			return null;
 		}
@@ -394,6 +396,14 @@ class Card {
 				_pl.takeDamage(dmg,DamageSource.physic);
 			}
 		}
+		if (txt.contains("Персонаж получает Кошмар ")) {
+			int dmg = MyFunction.getNumericAfterText(txt, "Персонаж получает Кошмар ");
+			if (_cr != null) {
+				_cr.effects.takeNightmare(dmg);
+			} else {
+				_pl.effects.takeNightmare(true,dmg);
+			}
+		}
 		if (txt.contains("Нанести магией ран ")) {
 			int dmg = MyFunction.getNumericAfterText(txt, "Нанести магией ран ");
 			if (_cr != null) {
@@ -424,7 +434,7 @@ class Card {
 			if (_cr!=null)
 			_cr.effects.takeBonusToScoot(dmg);
 			else 
-				_whis.effect.takeBonusToShoot(true, dmg);
+				_whis.effects.takeBonusToShoot(true, dmg);
 		}
 		if (txt.contains("Стать активным")) {
 			if (_cr!=null)
@@ -482,7 +492,7 @@ class Card {
 			}
 		}
 		if (txt.contains("Получить щит ББ.")) {
-			_whis.effect.takeBBShield(true);
+			_whis.effects.takeBBShield(true);
 		}
 		if (txt.contains("Лики-абилка.")) {// Only for player, who called it.
 			if (_whis.playerName.equals(owner.name)) {
@@ -874,7 +884,7 @@ class Card {
 		if (txt.contains("Выстрел по существу на ")) {
 			int dmg = MyFunction.getNumericAfterText(txt, "Выстрел по существу на ");
 			if (_whoCr!= null) {dmg+=_whoCr.effects.getBonusToShoot();}
-			else {dmg+=_whis.effect.getBonusToShoot();}
+			else {dmg+=_whis.effects.getBonusToShoot();}
 			
 			owner.printToView(0, _who.name + " стреляет на " + dmg + " по " + _cr.name);
 			_cr.takeDamage(dmg, _who, Creature.DamageSource.shoot, _who.haveRage());
@@ -882,14 +892,14 @@ class Card {
 		if (txt.contains("Выстрел на ")) {
 			int dmg = MyFunction.getNumericAfterText(txt, "Выстрел на ");
 			if (_whoCr!= null) {dmg+=_whoCr.effects.getBonusToShoot();}
-			else {dmg+=_whis.effect.getBonusToShoot();}
+			else {dmg+=_whis.effects.getBonusToShoot();}
 			
 			if (_cr != null) {
 				owner.printToView(0, _who.name + " стреляет на " + dmg + " по " + _cr.name);
 				_cr.takeDamage(dmg, _who, Creature.DamageSource.shoot, _who.haveRage());
 
 			} else {
-				_pl.effect.takeBBShield(false);
+				_pl.effects.takeBBShield(false);
 				owner.printToView(0, _who.name + " стреляет на " + dmg + " по " + _pl.name);
 				_pl.takeDamage(dmg,DamageSource.magic);
 			}

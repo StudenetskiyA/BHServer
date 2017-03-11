@@ -257,7 +257,7 @@ public class MyFunction {
     public static boolean canTargetComplex(Player pl, Creature cr, String ability){
         boolean canTarget=false;
         //BB shield
-        if (pl.owner.opponent.player.effect.getBBShield() && (cr.targetType==1 || cr.targetType==4) 
+        if (pl.owner.opponent.player.effects.getBBShield() && (cr.targetType==1 || cr.targetType==4) 
         		&& ability.contains("Выстрел"))
         {
         	return false;
