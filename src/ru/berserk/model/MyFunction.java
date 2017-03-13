@@ -119,35 +119,9 @@ public class MyFunction {
         return fromText.substring(fromText.indexOf(afterText)+afterText.length(),fromText.indexOf(symbol,fromText.indexOf(afterText)+afterText.length()));
     }
 
-    enum EffectPlayer{
-        bbShield(1), bonusToShoot(2), nightmare(3);
-
-        private final int value;
-
-        EffectPlayer(int value) {
-            this.value = value;
-        }
-
-        public int getValue() {
-            return value;
-        }
-
-        public static EffectPlayer fromInteger(int x) {
-            switch(x) {
-                case 1:
-                    return bbShield;
-                case 2: 
-                	return bonusToShoot;
-                case 3:
-                	return nightmare;
-            }
-            return null;
-        }
-    }
-
-    enum Effect{
-        vulnerability(2),turnToDie(3), die(4), bonusPowerUEOT(5), bonusPower(6), bonusTougnessUEOT(7), bonusTougness(8),
-        bonusArmor(9), cantattackandblock(10), controlChanged(11), notOpenAtBeginNextTurn(12), bonusToShoot(13), nightmare(1);
+    enum Effect {
+        nightmare(1), vulnerability(2), turnToDie(3), die(4), bonusPowerUEOT(5), bonusPower(6), bonusTougnessUEOT(7), bonusTougness(8),
+        bonusArmor(9), cantattackandblock(10), controlChanged(11), notOpenAtBeginNextTurn(12), bonusToShoot(13), iceShield(14);
 
         private final int value;
 
@@ -160,7 +134,7 @@ public class MyFunction {
         }
 
         public static Effect fromInteger(int x) {
-            switch(x) {
+            switch (x) {
                 case 1:
                     return nightmare;
                 case 2:
@@ -182,16 +156,18 @@ public class MyFunction {
                 case 10:
                     return cantattackandblock;
                 case 11:
-                	return controlChanged;
+                    return controlChanged;
                 case 12:
-                	return notOpenAtBeginNextTurn;
+                    return notOpenAtBeginNextTurn;
                 case 13:
-                	return bonusToShoot;
+                    return bonusToShoot;
+                case 14:
+                    return iceShield;
             }
             return null;
         }
     }
-
+    
     enum Target {myPlayer,myCreature,enemyPlayer,enemyCreature,myEquip,enemyEquip,myEvent,enemyEvent}
 
     enum PlayerStatus {
@@ -256,12 +232,7 @@ public class MyFunction {
     
     public static boolean canTargetComplex(Player pl, Creature cr, String ability){
         boolean canTarget=false;
-        //BB shield
-        if (pl.owner.opponent.player.effects.getBBShield() && (cr.targetType==1 || cr.targetType==4) 
-        		&& ability.contains("Выстрел"))
-        {
-        	return false;
-        }
+        
         if (pl.getNumberOfAlivedCreatures() > 0 && MyFunction.canTarget(MyFunction.Target.myCreature,cr.targetType)) {
             if (cr.targetType==12) {
                 if (pl.getNumberOfAlivedCreatures() > 1) return true;

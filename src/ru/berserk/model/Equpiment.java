@@ -4,6 +4,8 @@ package ru.berserk.model;
 
 import java.io.IOException;
 
+import ru.berserk.model.Creature.DamageSource;
+
 public class Equpiment extends Card {
     public boolean isTapped;
     public Player owner;
@@ -16,6 +18,16 @@ public class Equpiment extends Card {
              die();	
     	}
     }
+    
+    int getPower(){
+    	return power;
+    }
+    
+    DamageSource getPowerType(){
+		if (text.contains("Магический урон."))
+			return DamageSource.magic;
+		return DamageSource.physic;
+	}
     
     public void die() throws IOException{
     	owner.owner.sendBoth("#RemoveEquip("+owner.playerName+","+this.id+")");
@@ -33,31 +45,26 @@ public class Equpiment extends Card {
     }
 
     void tap() throws IOException {
-        isTapped = true;
-        owner.owner.sendBoth("#TapEqupiment("+owner.owner.player.playerName+","+id+",1)");
+       // isTapped = true;
+    	owner.tap();
+      //  owner.owner.sendBoth("#TapEqupiment("+owner.owner.player.playerName+","+id+",1)");
     }
     void untap() throws IOException {
-        isTapped = false;
+       // isTapped = false;
         owner.owner.sendBoth("#TapEqupiment("+owner.owner.player.playerName+","+id+",0)");
     }
 
-    public void tapNoTargetAbility() throws IOException {
-        String txt = this.text.substring(this.text.indexOf("ТАП:") + "ТАП:".length() + 1, this.text.indexOf(".", this.text.indexOf("ТАП:")) + 1);
-        System.out.println("ТАП: " + txt);
+    public void tapAbility(Permanent _target) throws IOException {
+    	String tapT = (_target == null) ? "ТАП:" : "ТАПТ:";
+        String txt = this.text.substring(this.text.indexOf(tapT) + tapT.length() + 1, this.text.indexOf(".", this.text.indexOf(tapT)) + 1);
+        System.out.println(tapT +" " + txt);
         tap();
-        Card.ability(owner.owner,this, owner, null, null, null, txt);
+        Card.ability(this, owner, _target, txt);
     }
 
-    public void tapTargetAbility(Creature _cr, Player _pl) throws IOException {
-        String txt = this.text.substring(this.text.indexOf("ТАПТ:") + "ТАПТ:".length() + 1, this.text.indexOf(".", this.text.indexOf("ТАПТ:")) + 1);
-        System.out.println("ТАПТ: " + txt);
-        tap();
-        Card.ability(owner.owner,this, owner, null, _cr, _pl, txt);
-    }
-
-    public void cry(Creature _cr, Player _pl) throws IOException {
+    public void cry(Permanent _target) throws IOException {
         String txt = this.text.substring(this.text.indexOf("Наймт:") + "Наймт:".length() + 1, this.text.indexOf(".", this.text.indexOf("Наймт:")) + 1);
         System.out.println("Наймт: " + txt);
-        Card.ability(owner.owner,this, owner, null, _cr, _pl, txt);
+        Card.ability(this, owner, _target, txt);
     }
 }

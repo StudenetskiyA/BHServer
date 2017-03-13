@@ -11,47 +11,38 @@ import ru.berserk.model.MyFunction.WhatAbility;
 
 // Created by StudenetskiyA on 30.12.2016.
 
-public class Player extends Card {
+public class Player extends Permanent {
 	ArrayList<Card> cardInHand = new ArrayList<>();// Don't do cardInHand.add or
 													// remove! Use addToGra...
 	ArrayList<Card> graveyard = new ArrayList<>();// Same for graveyard
 	ArrayList<Creature> creatures = new ArrayList<>();// And same for creatures
 
-	Gamer owner;
+	Gamer owner = ownerGamer;
+	
 	int numberPlayer;
-	int damage;
 	int cantDrawCardAtBeginTurn = 0;
 	String playerName;
 	int totalCoin;
 	int untappedCoin;
 	int temporaryCoin = 0;
-	boolean isTapped = false;
 	public Deck deck;
 
-	Equpiment equpiment[];// 0-armor,1-amulet,2-weapon,3-event
+	Equpiment equpiment[];// 0-shield,1-ring,2-weapon,3-event
 	public ArrayList<Creature> crDied;// Temporary list for queue
 	public ArrayList<Creature> crCryed;
 	public ArrayList<Creature> crUpkeeped;
 	//
+
 	public Effects effects = new Effects(this);
 
 	private static int tempX;// For card with X, for correct minus cost
 
-	public class Effects {
-		Player whis;
-		String additionalText = "";
-		private boolean bbShield = false;
-		int bonusToShoot = 0;
-		int nightmare = 0;
-		int shield = 0;
-		int magicShield = 0;
+	public class Effects extends Permanent.Effects{
+		Player whisPlayer;
 
 		Effects(Player _pl) {
-			whis = _pl;
-		}
-
-		boolean getBBShield() {
-			return bbShield;
+			super(_pl);
+			whisPlayer = _pl;
 		}
 
 		int getBonusToShoot() {
@@ -60,8 +51,8 @@ public class Player extends Card {
 
 		int getShield() {
 			int b = 0;
-			if (whis.equpiment[0] != null && whis.equpiment[0].text.contains("Герой получает Щит ")) {
-				b += MyFunction.getNumericAfterText(whis.equpiment[0].text, "Герой получает Щит ");
+			if (whisPlayer.equpiment[0] != null && whisPlayer.equpiment[0].text.contains("Герой получает Щит ")) {
+				b += MyFunction.getNumericAfterText(whisPlayer.equpiment[0].text, "Герой получает Щит ");
 			}
 			return shield + b;
 		}
@@ -70,27 +61,25 @@ public class Player extends Card {
 			return magicShield;
 		}
 
-		void takeBBShield(boolean take) throws IOException {
-			bbShield = take;
-			int t = (take) ? 1 : 0;
-			owner.sendBoth("#TakePlayerEffect(" + playerName + "," + MyFunction.EffectPlayer.bbShield.getValue() + ","
-					+ t + ")");
+		int getIceShield() {
+			return iceShield;
 		}
 
-		void takeNightmare(boolean take, int n) throws IOException {
-			nightmare = (take) ? n : 0;
-			int t = (take) ? 1 : 0;
-			owner.sendBoth("#TakePlayerEffect(" + playerName + "," + MyFunction.EffectPlayer.nightmare.getValue() + ","
-					+ t + ")");
+		void takeIceShield(int n) throws IOException {
+			iceShield += n;
+			if (iceShield < 0)
+				iceShield = 0;
+			owner.sendBoth(
+					"#TakeEffect(" + id + "," + MyFunction.Effect.iceShield.getValue() + ")");
 		}
 
-		void takeBonusToShoot(boolean take, int n) throws IOException {
-			bonusToShoot = (take) ? n : 0;
-			int t = (take) ? 1 : 0;
-			owner.sendBoth("#TakePlayerEffect(" + playerName + "," + MyFunction.EffectPlayer.bonusToShoot.getValue()
-					+ "," + t + ")");
-		}
-
+//		void takeBonusToShoot(int n) throws IOException {
+//			bonusToShoot += n;
+//			if (bonusToShoot < 0)
+//				bonusToShoot = 0;
+//			owner.sendBoth(
+//					"#TakeEffect(" + id + "," + MyFunction.Effect.bonusToShoot.getValue() + ")");
+//		}
 	}
 
 	void addCreatureToList(Creature c) throws IOException {
@@ -152,8 +141,10 @@ public class Player extends Card {
 	}
 
 	Player(Gamer _owner, Card _card, String _playerName) {
-		super(0, _card.name, _card.creatureType, 1, 0, _card.targetType, _card.tapTargetType, _card.text, 0, _card.hp);
+		super(_owner, 0, _card.name, _card.creatureType, 1, 0, _card.targetType, _card.tapTargetType, _card.text, 0, _card.hp);
 		owner = _owner;
+		isThisPlayer=this;
+		isThisCreature=null;
 		isTapped = false;
 		playerName = _playerName;
 		cardInHand = new ArrayList<>();
@@ -164,11 +155,14 @@ public class Player extends Card {
 		equpiment[2] = null;
 		equpiment[3] = null;
 		id = _card.id;
+		eff = this.effects;
 	}
 
 	Player(Gamer _owner, String _heroName, String _playerName, int _hp) {
-		super(0, _heroName, "", 1, 0, 0, 0, "", 0, _hp);
+		super(_owner, 0, _heroName, "", 1, 0, 0, 0, "", 0, _hp);
 		owner = _owner;
+		isThisPlayer=this;
+		isThisCreature=null;
 		isTapped = false;
 		playerName = _playerName;
 		cardInHand = new ArrayList<>();
@@ -180,6 +174,7 @@ public class Player extends Card {
 		equpiment[2] = null;
 		equpiment[3] = null;
 		id = _owner.name;
+		eff = this.effects;
 	}
 
 	void endTurn() throws IOException {
@@ -226,24 +221,14 @@ public class Player extends Card {
 		return tmp;
 	}
 
-	void massDieCheckNeededTarget() throws IOException {// if someone wants to
-														// choice target at
-														// death(self or other)
-														// - pause game
+	void massDieCheckNeededTarget() throws IOException {
 		crDied = new ArrayList<>(diedCreatureOnBoard());// died creature
 		ListIterator<Creature> temp = crDied.listIterator();
 		System.out.println("massDie, pl=" + playerName + ", found died " + crDied.size());
 		while (temp.hasNext()) {
 			Creature tmp = temp.next();
 			// Creature ability at death
-			ArrayList<Creature> crArray = searchWhenOtherDieAbility(tmp);// creature,
-																			// who
-																			// wants
-																			// to
-																			// other
-																			// die(ex.
-																			// Падальщик
-																			// Пустоши)
+			ArrayList<Creature> crArray = searchWhenOtherDieAbility(tmp);
 			ListIterator<Creature> crList = crArray.listIterator();
 			while (crList.hasNext()) {
 				Creature cr = crList.next();
@@ -284,16 +269,7 @@ public class Player extends Card {
 							// pause until player choice target.
 							owner.sendChoiceTarget(cr.name + " просит выбрать цель.");
 							System.out.println("pause");
-							owner.activatedAbility.creature.activatedAbilityPlayed = true;// if
-																							// you
-																							// remove
-																							// it,
-																							// may
-																							// play
-																							// any
-																							// times
-																							// at
-																							// turn.
+							owner.activatedAbility.creature.activatedAbilityPlayed = true;
 							synchronized (owner.cretureDiedMonitor) {
 								try {
 									owner.cretureDiedMonitor.wait();
@@ -314,7 +290,7 @@ public class Player extends Card {
 				}
 			}
 			if (tmp.text.contains("Гибель:")) {
-				tmp.deathratleNoTarget(tmp, tmp.owner);
+				tmp.deathratle(null);
 				tmp.effects.deathPlayed = true;
 			}
 			if (tmp.text.contains("Гибельт:") && !tmp.effects.deathPlayed) {
@@ -422,7 +398,7 @@ public class Player extends Card {
 			Creature tmp = temp.next();
 			// Creature ability at enter to board
 			if (tmp.text.contains("Найм:") && !tmp.effects.battlecryPlayed && !tmp.isDie()) {
-				tmp.battlecryNoTarget();
+				tmp.battlecry(null);
 				tmp.effects.battlecryPlayed = true;
 			}
 			if (tmp.text.contains("Наймт:") && !tmp.effects.battlecryPlayed && !tmp.isDie())
@@ -610,7 +586,7 @@ public class Player extends Card {
 						owner.sendBoth("#PlaySpell(" + playerName + "," + _card.name + ",0,-1)");
 					else
 						owner.sendBoth("#PlaySpell(" + playerName + "," + _card.name + ",1,-1)");
-					_card.playOnPlayer(this, _targetPlayer);
+					_card.playCard(this, _targetPlayer);
 				}
 				if (_targetCreature != null) {
 					if (_targetCreature.owner == this)
@@ -619,12 +595,12 @@ public class Player extends Card {
 					else
 						owner.sendBoth("#PlaySpell(" + playerName + "," + _card.name + ",1,"
 								+ owner.opponent.player.getNumberOfCreature(_targetCreature) + ")");
-					_card.playOnCreature(this, _targetCreature);
+					_card.playCard(this, _targetCreature);
 				}
 				// No target
 				if ((_targetCreature == null) && (_targetPlayer == null)) {
 					owner.sendBoth("#PlaySpell(" + playerName + "," + _card.name + ",-1,-1)");
-					_card.playNoTarget(this);
+					_card.playCard(this,null);
 				}
 			} else if (_card.type == 2) {
 				// creature
@@ -677,60 +653,67 @@ public class Player extends Card {
 		removeCardFromGraveyard(c);
 	}
 
-	void takeDamage(int dmg, DamageSource dmgsrc) throws IOException {
-		// equpiment[1]
-		// if (equpiment[1] != null) {
-		// if (equpiment[1].name.equals("Браслет подчинения")) {
-		// //Плащ исхара
-		// if (dmg != 1)
-		// owner.printToView(0, "Браслет подчинения свел атаку к 1.");
-		// owner.opponent.printToView(0, "Браслет подчинения свел атаку к 1.");
-		// dmg = 1;
-		// }
-		// }
-		// //equpiment[0]
-		// if (equpiment[0] != null) {
-		// if (equpiment[0].name.equals("Плащ Исхара")) {
-		// //Плащ исхара
-		// int tmp = dmg;
-		// dmg -= equpiment[0].hp;
-		// equpiment[0].hp -= tmp;
-		// if (dmg < 0) dmg = 0;
-		// //TODO Send equip effect
-		// owner.sendBoth("#AddEquipEffectHP("+owner.player.playerName+","+"0"+","+equpiment[0].hp+")");
-		// owner.printToView(0, "Плащ Исхара предотвратил " + (tmp - dmg) + "
-		// урона.");
-		// owner.opponent.printToView(0, "Плащ Исхара предотвратил " + (tmp -
-		// dmg) + " урона.");
-		// if (equpiment[0].hp <= 0) {
-		// removeEqupiment(equpiment[0]);
-		// equpiment[0] = null;
-		// }
-		// }
-		// }
-
-		if (dmgsrc == DamageSource.physic) {
-			dmg -= effects.getShield();
-			if (dmg < 0)
-				dmg = 0;
-		}
-		if (dmgsrc == DamageSource.magic) {
-			dmg -= effects.getMagicShield();
-			if (dmg < 0)
-				dmg = 0;
-		}
-
-		damage += dmg;
-		if (dmg != 0) {
-			owner.sendBoth("#TakeHeroDamage(" + playerName + "," + dmg + ")");
-			if (equpiment[0] != null)
-				equpiment[0].takeDamage(1);
-		}
-
-		if (hp <= damage) {
-			loseGame();
-		}
-	}
+//	void takeDamage(int dmg, DamageSource dmgsrc) throws IOException {
+//		// equpiment[1]
+//		// if (equpiment[1] != null) {
+//		// if (equpiment[1].name.equals("Браслет подчинения")) {
+//		// //Плащ исхара
+//		// if (dmg != 1)
+//		// owner.printToView(0, "Браслет подчинения свел атаку к 1.");
+//		// owner.opponent.printToView(0, "Браслет подчинения свел атаку к 1.");
+//		// dmg = 1;
+//		// }
+//		// }
+//		// //equpiment[0]
+//		// if (equpiment[0] != null) {
+//		// if (equpiment[0].name.equals("Плащ Исхара")) {
+//		// //Плащ исхара
+//		// int tmp = dmg;
+//		// dmg -= equpiment[0].hp;
+//		// equpiment[0].hp -= tmp;
+//		// if (dmg < 0) dmg = 0;
+//		// //TODO Send equip effect
+//		// owner.sendBoth("#AddEquipEffectHP("+owner.player.playerName+","+"0"+","+equpiment[0].hp+")");
+//		// owner.printToView(0, "Плащ Исхара предотвратил " + (tmp - dmg) + "
+//		// урона.");
+//		// owner.opponent.printToView(0, "Плащ Исхара предотвратил " + (tmp -
+//		// dmg) + " урона.");
+//		// if (equpiment[0].hp <= 0) {
+//		// removeEqupiment(equpiment[0]);
+//		// equpiment[0] = null;
+//		// }
+//		// }
+//		// }
+//
+//		if (effects.iceShield > 0) {
+//			dmg -= effects.getIceShield();
+//			effects.takeIceShield(-dmg);
+//			if (dmg < 0)
+//				dmg = 0;
+//		}
+//
+//		if (dmgsrc == DamageSource.physic) {
+//			dmg -= effects.getShield();
+//			if (dmg < 0)
+//				dmg = 0;
+//		}
+//		if (dmgsrc == DamageSource.magic) {
+//			dmg -= effects.getMagicShield();
+//			if (dmg < 0)
+//				dmg = 0;
+//		}
+//
+//		damage += dmg;
+//		if (dmg != 0) {
+//			owner.sendBoth("#TakeHeroDamage(" + playerName + "," + dmg + ")");
+//			if (equpiment[0] != null)
+//				equpiment[0].takeDamage(1);
+//		}
+//
+//		if (hp <= damage) {
+//			loseGame();
+//		}
+//	}
 
 	void loseGame() throws IOException {
 		if (owner.opponent != null) {
@@ -741,70 +724,37 @@ public class Player extends Card {
 		owner.loseGame();
 		owner.opponent.removePlayer();
 		owner.removePlayer();
-
-		// owner.server.sendMessage("#LoseGame(" + playerName + ")");
-		// owner.loseGame();
-		// owner.opponent.server.sendMessage("#LoseGame(" + playerName + ")");
-		// owner.opponent.winGame();
-		// owner.setPlayerGameStatus(MyFunction.PlayerStatus.endGame);//It is
-		// not matter.
-		// owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.endGame);
-		//
-		// owner.opponent.removePlayer();
-		// owner.removePlayer();
-		// TODO End game, get bonus etc.
-		// owner.removeBothClient();
 	}
 
-	void heal(int dmg) throws IOException {
-		if (equpiment[1] != null && equpiment[1].name.equals("Браслет подчинения")) {
-			owner.printToView(0, name + " не может быть излечен.");
-		} else {
-			damage -= dmg;
-			if (damage < 0)
-				damage = 0;
-			owner.sendBoth("#TakeHeroDamage(" + playerName + ",-" + dmg + ",0)");
-		}
-	}
+//	void abilityNoTarget(int n) throws IOException {
+//		String txt = "";
+//		if (n == 0) {
+//			txt = this.text.substring(this.text.indexOf("ТАП:") + "ТАП:0".length() + 1,
+//					this.text.indexOf(".", this.text.indexOf("ТАП:")) + 1);
+//			System.out.println("ТАП HERO: " + txt);
+//		} else {
+//			txt = this.text.substring(this.text.indexOf("2ТАП:") + "2ТАП:0".length() + 1,
+//					this.text.indexOf(".", this.text.indexOf("2ТАП:")) + 1);
+//			System.out.println("ТАП2 HERO: " + txt);
+//		}
+//		tap();
+//		Card.ability(this, null, txt);
+//	}
 
-	void abilityNoTarget(int n) throws IOException {
-		String txt = "";
-		if (n == 0) {
-			txt = this.text.substring(this.text.indexOf("ТАП:") + "ТАП:0".length() + 1,
-					this.text.indexOf(".", this.text.indexOf("ТАП:")) + 1);
-			System.out.println("ТАП HERO: " + txt);
-		} else {
-			txt = this.text.substring(this.text.indexOf("2ТАП:") + "2ТАП:0".length() + 1,
-					this.text.indexOf(".", this.text.indexOf("2ТАП:")) + 1);
-			System.out.println("ТАП2 HERO: " + txt);
-		}
-		tap();
-		Card.ability(owner, this, this, null, null, null, txt);
-	}
-
-	void ability(int n, Creature _cr, Player _pl) throws IOException {
-		String txt = "";
-		if (n == 0) {
-			txt = this.text.substring(this.text.indexOf("ТАПТ:") + "ТАПТ: ".length() + 1,
-					this.text.indexOf(".", this.text.indexOf("ТАПТ:") + 1));
-			System.out.println("TAPT HERO: " + txt);
-		} else {
-			txt = this.text.substring(this.text.indexOf("2ТАПТ:") + "2ТАПТ: ".length() + 1,
-					this.text.indexOf(".", this.text.indexOf("2ТАПТ:") + 1));
-			System.out.println("TAPT2 HERO: " + txt);
-		}
-		tap();
-		Card.ability(owner, this, this, null, _cr, _pl, txt);
-	}
-
-	void killing() throws IOException {
-		System.out.println("Killing!");
-		if (text.contains("Убийство: ")) {
-			String txt = this.text.substring(this.text.indexOf("Убийство: ") + "Убийство: ".length(),
-					this.text.indexOf(".", this.text.indexOf("Убийство: ") + 1));
-			Card.ability(owner, this, this, null, null, null, txt);
-		}
-	}
+//	void ability(int n, Permanent _target) throws IOException {
+//		String txt = "";
+//		if (n == 0) {
+//			txt = this.text.substring(this.text.indexOf("ТАПТ:") + "ТАПТ: ".length() + 1,
+//					this.text.indexOf(".", this.text.indexOf("ТАПТ:") + 1));
+//			System.out.println("TAPT HERO: " + txt);
+//		} else {
+//			txt = this.text.substring(this.text.indexOf("2ТАПТ:") + "2ТАПТ: ".length() + 1,
+//					this.text.indexOf(".", this.text.indexOf("2ТАПТ:") + 1));
+//			System.out.println("TAPT2 HERO: " + txt);
+//		}
+//		tap();
+//		Card.ability(this, _target, txt);
+//	}
 
 	public Card searchInGraveyard(String name) {
 		for (int i = 0; i <= graveyard.size(); i++) {
@@ -814,27 +764,55 @@ public class Player extends Card {
 		return null;
 	}
 
-	public void tap() throws IOException {
-		// TODO #Tap
-		owner.sendBoth("#TapPlayer(" + playerName + ",1)");
-		isTapped = true;
-	}
+//	public void tap() throws IOException {
+//		// TODO #Tap
+//		owner.sendBoth("#TapPlayer(" + playerName + ",1)");
+//		isTapped = true;
+//	}
 
-	public void untap() throws IOException {
-		owner.sendBoth("#TapPlayer(" + playerName + ",0)");
-		if (isTapped) {
-			if (this.effects.nightmare != 0) {
-				this.takeDamage(this.effects.nightmare, Creature.DamageSource.magic);
-				this.effects.takeNightmare(false, 0);
-			}
-		}
-		isTapped = false;
-	}
+//	public void untap() throws IOException {
+//		owner.sendBoth("#TapPlayer(" + playerName + ",0)");
+//		if (isTapped) {
+//			if (this.effects.nightmare != 0) {
+//				this.takeDamage(this.effects.nightmare, Creature.DamageSource.magic);
+//				this.effects.takeNightmare(-this.effects.nightmare);
+//			}
+//		}
+//		isTapped = false;
+//	}
 
 	public void removeEqupiment(Equpiment eq) throws IOException {
 		eq.die();
 	}
 
+	public int getPower(){
+		if (this.equpiment[2]!=null) return this.equpiment[2].power; 
+		else return 0;
+	}
+	
+	public DamageSource getPowerType(){
+		if (this.equpiment[2]!=null) return this.equpiment[2].getPowerType(); 
+		else return DamageSource.physic;
+	}
+	
+	public void fightPlayer(Player target) throws IOException{
+		target.takeDamage(getPower(), this, getPowerType());
+		if (!target.isTapped)
+		this.takeDamage(target.getPower(), target, target.getPowerType());
+		
+		this.equpiment[2].takeDamage(1);
+	}
+	
+	public void fightCreature(Creature target) throws IOException{
+		target.takeDamage(getPower(), this, getPowerType());
+		if (!target.isTapped)
+		this.takeDamage(target.getPower(), target, target.getPowerType());
+		
+		this.equpiment[2].takeDamage(1);
+		
+		if (target.isDie()) killing();
+	}
+	
 	public int getNotNullEqupiment() {
 		// Event on other method
 		int count = 0;

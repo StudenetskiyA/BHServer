@@ -8,17 +8,12 @@ import ru.berserk.model.Creature.DamageSource;
 
 // Created by StudenetskiyA on 30.12.2016.
 
-public class Creature extends Card {
-	boolean isTapped;
+public class Creature extends Permanent {
 	boolean isSummonedJust;
 	boolean activatedAbilityPlayed = false;
 
 	Player owner;
 	Player trueOwner;// for change control
-
-	int shield = 0;
-	int magicShield = 0;
-	int damage;// taked damage
 
 	enum DamageSource {
 		fightOffense, fightDefense, spell, poison, ability, shoot, magic, physic
@@ -26,12 +21,12 @@ public class Creature extends Card {
 
 	Effects effects = new Effects(this);
 
-	public class Effects {
-		Creature whis;
+	public class Effects extends Permanent.Effects{
+		Creature whisCreature;
 		String additionalText = "";
 		boolean changedControll = false;
 		boolean isDie = false;
-		int nightmare = 0;
+
 		private int bonusPower = 0;
 		private int bonusPowerUEOT = 0;
 		private int bonusTougness = 0;
@@ -45,24 +40,17 @@ public class Creature extends Card {
 
 		boolean deathPlayed = false;
 		boolean controlChanged = false;
-		ArrayList<TemporaryTextEffect> temporaryTextEffects = new ArrayList<>();
+	//	ArrayList<TemporaryTextEffect> temporaryTextEffects = new ArrayList<>();
 
-		class TemporaryTextEffect {
-			String textEffect = "";
-			int lenght = 0;
-
-			TemporaryTextEffect(String ef, int l) {
-				textEffect = ef;
-				lenght = l;
-			}
-		}
-
+		
 		Effects(Creature _cr) {
-			whis = _cr;
+			super(_cr);
+			whisCreature = _cr;
 		}
 
 		Effects(Creature _cr, Effects ef) {
-			whis = _cr;
+			super(_cr);
+			whisCreature = _cr;
 			additionalText = ef.additionalText;
 			changedControll = ef.changedControll;
 			isDie = ef.isDie;
@@ -100,27 +88,27 @@ public class Creature extends Card {
 			activatedAbilityPlayed = false;
 
 			if (whis.text.contains(" В конце хода если не имеет ран, вернуть его в руку.") && whis.damage == 0) {
-				whis.returnToHand();
+				whisCreature.returnToHand();
 			}
 
 		}
 
-		String getAdditionalText() {
-			String tmp = additionalText;
-			for (TemporaryTextEffect te : temporaryTextEffects) {
-				tmp += te.textEffect + " ";
-			}
-			return tmp;
-		}
+//		String getAdditionalText() {
+//			String tmp = additionalText;
+//			for (TemporaryTextEffect te : temporaryTextEffects) {
+//				tmp += te.textEffect + " ";
+//			}
+//			return tmp;
+//		}
 
-		boolean getVulnerability() {
-			if (owner.owner.opponent.player.equpiment[3] != null
-					&& owner.owner.opponent.player.equpiment[3].name.equals("Аккения")) {
-				System.out.println("Аккения детектед");
-				return true;
-			}
-			return vulnerability;
-		}
+//		boolean getVulnerability() {
+//			if (owner.opponent.player.equpiment[3] != null
+//					&& owner.opponent.player.equpiment[3].name.equals("Аккения")) {
+//				System.out.println("Аккения детектед");
+//				return true;
+//			}
+//			return vulnerability;
+//		}
 
 		int getBonusPower() {
 			// TODO Change name on have text! Creature may loose ability
@@ -188,22 +176,10 @@ public class Creature extends Card {
 		// MyFunction.Effect.poison.getValue() + "," + p + ")");
 		// }
 
-		void takeNightmare(int p) throws IOException {
-			nightmare += p;
-			owner.owner.sendBoth(
-					"#TakeCreatureIdEffect(" + whis.id + "," + MyFunction.Effect.nightmare.getValue() + "," + p + ")");
-		}
-
-		void looseNightmare() throws IOException {
-			nightmare = 0;
-			owner.owner
-					.sendBoth("#LooseCreatureIdEffect(" + whis.id + "," + MyFunction.Effect.nightmare.getValue() + ")");
-		}
-
 		void takeBonusToScoot(int p) throws IOException {
 			bonusToShoot += p;
-			owner.owner.sendBoth("#TakeCreatureIdEffect(" + whis.id + "," + MyFunction.Effect.bonusToShoot.getValue()
-					+ "," + p + ")");
+			owner.owner.sendBoth(
+					"#TakeCreatureIdEffect(" + whis.id + "," + MyFunction.Effect.bonusToShoot.getValue() + "," + bonusToShoot + ")");
 		}
 
 		void takeTurnToDie(int t) throws IOException {
@@ -238,7 +214,7 @@ public class Creature extends Card {
 
 		void takeControlChange() throws IOException {
 			controlChanged = true;
-			whis.owner.owner.sendBoth("#TakeCreatureIdEffect(" + whis.id + ","
+			whisCreature.owner.owner.sendBoth("#TakeCreatureIdEffect(" + whis.id + ","
 					+ MyFunction.Effect.controlChanged.getValue() + "," + 0 + ")");
 		}
 
@@ -274,22 +250,11 @@ public class Creature extends Card {
 			owner.owner.sendBoth("#TakeCreatureIdText(" + whis.id + "," + txt + ")");
 		}
 
-		boolean getAttackSkill() {
-			// Rage ors
-			if (whis.text.contains("Пока у вас есть другое существо, получает +2 к удару и опыт в атаке.")
-					&& whis.owner.creatures.size() > 1) {
-				return true;
-			}
-			if (additionalText.contains("Опыт в атаке"))
-				return true;
-
-			return false;
-		}
 	}
 
-	String getText() {
-		return text + "." + effects.getAdditionalText();
-	}
+//	String getText() {
+//		return text + "." + effects.getAdditionalText();
+//	}
 
 	Boolean isContainsOwn(String what) {
 		return MyFunction.isInOwnTextNotInTake(text + "." + effects.getAdditionalText(), what);
@@ -303,11 +268,11 @@ public class Creature extends Card {
 		return !MyFunction.textNotInTake(getText()).contains("Не может атаковать");
 	}
 
-	boolean getCanBlock() {
-		if (isTapped)
-			return false;
-		return !MyFunction.textNotInTake(getText()).contains("Не может блокировать");
-	}
+//	boolean getCanBlock() {
+//		if (isTapped)
+//			return false;
+//		return !MyFunction.textNotInTake(getText()).contains("Не может блокировать");
+//	}
 
 	boolean getIsSummonedJust() {
 		if (text.contains("Рывок"))
@@ -332,21 +297,21 @@ public class Creature extends Card {
 		return isSummonedJust;
 	}
 
-	boolean getAttackSkill() {
-		if (text.contains("Опыт в атаке"))
-			return true;
-		if (effects.getAttackSkill())
-			return true;
-		return false;
-	}
-
-	boolean getDefenseSkill() {
-		if (text.contains("Опыт в защите"))
-			return true;
-		if (effects.additionalText.contains("Опыт в защите"))
-			return true;
-		return false;
-	}
+//	boolean getAttackSkill() {
+//		if (text.contains("Опыт в атаке"))
+//			return true;
+//		if (effects.getAttackSkill())
+//			return true;
+//		return false;
+//	}
+//
+//	boolean getDefenseSkill() {
+//		if (text.contains("Опыт в защите"))
+//			return true;
+//		if (effects.additionalText.contains("Опыт в защите"))
+//			return true;
+//		return false;
+//	}
 
 	// boolean getTargetStrike() {
 	// if (MyFunction.isInOwnTextNotInTake(text, "Направленный удар")) return
@@ -355,33 +320,32 @@ public class Creature extends Card {
 	// return false;
 	// }
 
-	boolean getAgility() {
-		if (MyFunction.isInOwnTextNotInTake(text, "Ловкость"))
-			return true;
-		if (effects.additionalText.contains("Ловкость"))
-			return true;
-		return false;
-	}
+//	boolean getAgility() {
+//		if (MyFunction.isInOwnTextNotInTake(text, "Ловкость"))
+//			return true;
+//		if (effects.additionalText.contains("Ловкость"))
+//			return true;
+//		return false;
+//	}
 
-	int getShield() {
-		return shield;// + effects.getBonusShield();
-	}
 
-	int getMagicShield() {
-		return magicShield;// + effects.getBonusShield();
-	}
-
-	int getPower() {
-		return power + effects.getBonusPower();
-	}
-
-	int getTougness() {
-		return hp + effects.getBonusTougness();
-	}
+//	int getPower() {
+//		return power + effects.getBonusPower();
+//	}
+//
+//	DamageSource getPowerType(){
+//		if (text.contains("Магический урон.") || effects.additionalText.contains("Магический урон."))
+//			return DamageSource.magic;
+//		return DamageSource.physic;
+//	}
+//
 
 	Creature(Creature _card) {
-		super(_card.cost, _card.name, _card.creatureType, _card.color, _card.type, _card.targetType,
+		super(_card.owner.owner, _card.cost, _card.name, _card.creatureType, _card.color, _card.type, _card.targetType,
 				_card.tapTargetType, _card.text, _card.power, _card.hp);
+
+		isThisPlayer=null;
+		isThisCreature=this;
 		image = _card.image;
 		cost = _card.cost;
 		isTapped = _card.isTapped;
@@ -394,11 +358,15 @@ public class Creature extends Card {
 		shield = _card.shield;
 		magicShield = _card.magicShield;
 		damage = _card.damage;
+		
+		eff = this.effects;
 	}
 
 	Creature(Card _card, Player _owner) {
-		super(_card.cost, _card.name, _card.creatureType, _card.color, _card.type, _card.targetType,
+		super(_owner.owner, _card.cost, _card.name, _card.creatureType, _card.color, _card.type, _card.targetType,
 				_card.tapTargetType, _card.text, _card.power, _card.hp);
+		isThisPlayer=null;
+		isThisCreature=this;
 		image = _card.image;
 		cost = _card.cost;
 		id = _card.id;
@@ -413,230 +381,248 @@ public class Creature extends Card {
 		if (text.contains("Магический щит ")) {
 			magicShield = MyFunction.getNumericAfterText(text, "Магический щит ");
 		}
+		eff = this.effects;
 	}
 
 	void tapCreature() throws IOException {
-		isTapped = true;
-		owner.owner.sendBoth("#TapCreature(" + owner.playerName + "," + this.id + ",1)");
+		tap();
+		//isTapped = true;
+		//owner.owner.sendBoth("#TapCreature(" + owner.playerName + "," + this.id + ",1)");
 	}
 
 	void untapCreature() throws IOException {
-		if (isTapped) {
-			if (effects.nightmare != 0 && !isDie()) {
-				takeDamage(effects.nightmare, this, Creature.DamageSource.magic);
-				effects.looseNightmare();
-			}
-		}
-		isTapped = false;
-		owner.owner.sendBoth("#TapCreature(" + owner.playerName + "," + this.id + ",0)");
+		untap();
+//		if (isTapped) {
+//			if (effects.nightmare != 0 && !isDie()) {
+//				takeDamage(effects.nightmare, this, Creature.DamageSource.magic);
+//				effects.takeNightmare(-effects.nightmare);
+//			}
+//		}
+//		isTapped = false;
+//		owner.owner.sendBoth("#TapCreature(" + owner.playerName + "," + this.id + ",0)");
 	}
 
-	private ArrayList<Creature> canAnyoneBlock(Creature target) {
-		// Return list of creature, who may be block this
-		ArrayList<Creature> crt = new ArrayList<>(owner.owner.opponent.player.creatures);
-		ArrayList<Creature> crtCopy = new ArrayList<>(crt);
-		ListIterator<Creature> temp = crtCopy.listIterator();
+//	private boolean canAnyoneBlock(Creature target) {
+//		if (!target.owner.isTapped && target.owner.equpiment[0]!=null) return true;
+//		
+//		ArrayList<Creature> crt = new ArrayList<>(owner.owner.opponent.player.creatures);
+//		ArrayList<Creature> crtCopy = new ArrayList<>(crt);
+//		ListIterator<Creature> temp = crtCopy.listIterator();
+//
+//		while (temp.hasNext()) {
+//			Creature tmp = temp.next();
+//			if (!tmp.getCanBlock()) {
+//				crt.remove(tmp);
+//			} else {
+//				if (this.getAgility() && !tmp.getAgility())
+//					crt.remove(tmp);
+//			}
+//		}
+//		if (crt.contains(target))
+//			crt.remove(target);
+//
+//		if (crt.size()!=0) return true;
+//		
+//		return false;
+//	}
+	
+//	private ArrayList<Permanent> canAnyoneBlock(Creature target) {
+//		// Return list of creature, who may be block this
+//		ArrayList<Permanent> crt = new ArrayList<>(owner.owner.opponent.player.creatures);
+//		ArrayList<Creature> crtCopy = new ArrayList<>(crt);
+//		ListIterator<Creature> temp = crtCopy.listIterator();
+//
+//		while (temp.hasNext()) {
+//			Creature tmp = temp.next();
+//			if (!tmp.getCanBlock()) {
+//				crt.remove(tmp);
+//			} else {
+//				if (this.getAgility() && !tmp.getAgility())
+//					crt.remove(tmp);
+//			}
+//		}
+//		if (crt.contains(target))
+//			crt.remove(target);
+//		return crt;
+//	}
 
-		while (temp.hasNext()) {
-			Creature tmp = temp.next();
-			if (!tmp.getCanBlock()) {
-				crt.remove(tmp);
-			} else {
-				if (this.getAgility() && !tmp.getAgility())
-					crt.remove(tmp);
-			}
-		}
-		if (crt.contains(target))
-			crt.remove(target);
-		return crt;
-	}
+//	void fightCreature(Creature second) throws IOException {
+//		DamageSource att = this.getPowerType();
+//		DamageSource def = second.getPowerType();
+//		
+//		if (!second.isTapped) {// First is passive
+//			if ((second.text.contains("Первый удар.")) && (!this.text.contains("Первый удар."))) {
+//				if (this.damage < this.hp)
+//					second.takeDamage(this.getPower(), this, att);
+//				this.takeDamage(second.getPower(), second, def);
+//			} else if ((this.text.contains("Первый удар.")) && (!second.text.contains("Первый удар."))) {
+//				second.takeDamage(this.getPower(), this, att);
+//				if (second.damage < second.hp)
+//					this.takeDamage(second.getPower(), second, def);
+//			} else {
+//				second.takeDamage(this.getPower(), this, att);
+//				this.takeDamage(second.getPower(), second, def);
+//			}
+//		} else {
+//			owner.owner.printToView(0, this.name + " ударяет " + second.name + ".");
+//			second.takeDamage(this.getPower(), this, att);
+//		}
+//		// Killing
+//		if (second.isDie() && !this.isDie())
+//			this.killing();
+//		if (!second.isDie() && this.isDie())
+//			second.killing();
+//	}
 
-	void fightCreature(Creature second) throws IOException {
-		if (!second.isTapped) {// First is passive
-			// owner.owner.printToView(0, this.name + " сражается с " +
-			// second.name + ".");
-			if ((second.text.contains("Первый удар.")) && (!this.text.contains("Первый удар."))) {
-				if (this.damage < this.hp)
-					second.takeDamage(this.getPower(), this, DamageSource.fightDefense, second.haveRage());
-				this.takeDamage(second.getPower(), second, DamageSource.fightOffense, second.haveRage());
-			} else if ((this.text.contains("Первый удар.")) && (!second.text.contains("Первый удар."))) {
-				second.takeDamage(this.getPower(), this, DamageSource.fightDefense, second.haveRage());
-				if (second.damage < second.hp)
-					this.takeDamage(second.getPower(), second, DamageSource.fightOffense, second.haveRage());
-			} else {
-				second.takeDamage(this.getPower(), this, DamageSource.fightDefense, second.haveRage());
-				this.takeDamage(second.getPower(), second, DamageSource.fightOffense, second.haveRage());
-			}
-		} else {
-			owner.owner.printToView(0, this.name + " ударяет " + second.name + ".");
-			second.takeDamage(this.getPower(), this, DamageSource.fightDefense, second.haveRage());
-		}
-		// Killing
-		if (second.isDie() && !this.isDie())
-			this.killing();
-		if (!second.isDie() && this.isDie())
-			second.killing();
+//	void fightPlayer(Player second) throws IOException {
+//		second.takeDamage(this.getPower(), this, getPowerType());
+//		if (!second.isTapped){
+//			if (second.getPower()>0){
+//			takeDamage(second.getPower(), second, second.getPowerType());
+//			second.equpiment[2].takeDamage(1);
+//			}
+//		}
+//	}
 
-	}
+//	void attackCreature(Creature target) throws IOException {
+//		if (!getCanAttack()) {
+//			owner.owner.printToView(0, "Повернутое/атаковавшее/т.д. существо не может атаковать.");
+//			return;
+//		}
+//
+//		owner.owner.sendBoth("#Attack(" + owner.playerName + "," + owner.getNumberOfCreature(this) + ","
+//				+ owner.owner.opponent.player.getNumberOfCreature(target) + ")");
+//
+//		tapCreature();
+//
+//		if (canAnyoneBlock(target)) {
+//			int nc = owner.creatures.indexOf(this);
+//			int nt = owner.owner.opponent.player.creatures.indexOf(target);
+//			owner.owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.IChoiceBlocker);
+//			owner.owner.opponent.creatureWhoAttack = nc;
+//			owner.owner.opponent.creatureWhoAttackTarget = nt;
+//			owner.owner.opponent.server
+//					.sendMessage("#ChoiceBlocker(" + owner.owner.opponent.name + "," + nc + "," + nt + ")");
+//			owner.owner.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceBlocker);
+//		} else {
+//			fightCreature(target);
+//		}
+//	}
 
-	void heal(int dmg) throws IOException {
-		damage -= dmg;
-		if (damage < 0)
-			damage = 0;
-		owner.owner.sendBoth(
-				"#TakeCreatureDamage(" + owner.playerName + "," + owner.getNumberOfCreature(this) + "," + (-dmg) + ")");
-	}
+//	void attackPlayer(Player target) throws IOException {
+//		if (!getCanAttack()) {
+//			owner.owner.printToView(0, "Повернутое/атаковавшее/т.д. существо не может атаковать.");
+//			return;
+//		}
+//
+//		owner.owner.sendBoth("#Attack(" + owner.playerName + "," + owner.getNumberOfCreature(this) + ",-1)");
+//
+//		tap();
+//
+//		if (canAnyoneBlock(null)) {
+//			int nc = owner.creatures.indexOf(this);
+//			int nt = -1;
+//			owner.owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.IChoiceBlocker);
+//			owner.owner.opponent.creatureWhoAttack = nc;
+//			owner.owner.opponent.creatureWhoAttackTarget = nt;
+//			owner.owner.opponent.server
+//					.sendMessage("#ChoiceBlocker(" + owner.owner.opponent.name + "," + nc + "," + nt + ")");
+//			owner.owner.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceBlocker);
+//		} else {
+//			fightPlayer(target);
+//		}
+//	}
 
-	void fightPlayer(Player second) throws IOException {
-		second.takeDamage(this.getPower(), DamageSource.physic);
-	}
+//	void takeDamage(int dmg, Card damageSrc, DamageSource dmgsrc) throws IOException {
+//		// Protection from.
+//		// if (this.isContainsOwn("Не получает ран")) {
+//		// owner.owner.printToView(0, this.name + " не получает ран.");
+//		// return;
+//		// }
+//		// if (this.isContainsOwn("Не получает от ударов ран") && (dmgsrc ==
+//		// DamageSource.fightDefense || dmgsrc==DamageSource.fightOffense)) {
+//		// owner.owner.printToView(0, this.name + " не получает от ударов
+//		// ран.");
+//		// return;
+//		// }
+//		// if (this.isContainsOwn("Защита от атак") && (dmgsrc ==
+//		// DamageSource.shoot || dmgsrc == DamageSource.fightDefense)) {
+//		// if (this.isContainsOwn("Защита от атак цвет ")) {
+//		// int c = MyFunction.getNumericAfterText(this.getText(), "Защита от
+//		// атак цвет ");
+//		// if (damageSrc.color == c) {
+//		// owner.owner.printToView(0, "У " + this.name + " защита от атак " +
+//		// damageSrc.name + ".");
+//		// return;
+//		// }
+//		// }
+//		// if (this.isContainsOwn("Защита от атак стоимость менее ")) {
+//		// int c = MyFunction.getNumericAfterText(this.getText(), "Защита от
+//		// атак стоимость менее ");
+//		// if (this.getCost(this.owner) < c) {
+//		// owner.owner.printToView(0, "У " + this.name + " защита от атак " +
+//		// damageSrc.name + ".");
+//		// return;
+//		// }
+//		// }
+//		// }
+//
+//		if (owner.effects.iceShield>0) {
+//			 dmg -= owner.effects.getIceShield();
+//			 owner.effects.takeIceShield(-dmg);
+//			 if (dmg < 0) dmg = 0;
+//		}
+//		
+//		if (dmgsrc == DamageSource.physic) {
+//			dmg -= getShield();
+//			if (dmg < 0)
+//				dmg = 0;
+//		}
+//		if (dmgsrc == DamageSource.magic) {
+//			dmg -= getMagicShield();
+//			if (dmg < 0)
+//				dmg = 0;
+//		}
+//
+//		damage += dmg;
+//		
+//		if (dmg!=0)
+//		owner.owner.sendBoth("#TakeCreatureDamage(" + owner.playerName + "," + this.id + "," + dmg + ")");
+//
+//		if (getTougness() <= damage) {
+//			die();
+//		}
+//	}
 
-	void attackCreature(Creature target) throws IOException {
-		if (target.owner.effects.getBBShield()) {
-			owner.owner.printToView(0, "Первая атака должна быть в Бьорнбона.");
-			return;
-		}
-		if (!getCanAttack()) {
-			owner.owner.printToView(0, "Повернутое/атаковавшее/т.д. существо не может атаковать.");
-			return;
-		}
+//	void tapNoTargetAbility() throws IOException {
+//		String txt = this.text.substring(this.text.indexOf("ТАП:") + "ТАП:".length() + 1,
+//				this.text.indexOf(".", this.text.indexOf("ТАП:")) + 1);
+//		System.out.println("ТАПТ: " + txt);
+//		tapCreature();
+//		Card.ability(owner.owner, this, owner, this, null, null, txt);
+//	}
+//
+//	void tapTargetAbility(Creature _cr, Player _pl) throws IOException {
+//		String txt = this.text.substring(this.text.indexOf("ТАПТ:") + "ТАПТ:".length() + 1,
+//				this.text.indexOf(".", this.text.indexOf("ТАПТ:")) + 1);
+//		System.out.println("ТАПТ: " + txt);
+//		// Cant attack here?
+//		if (!getCanAttack() && txt.contains("Выстрел")) {
+//			owner.owner.server.sendMessage(this.name + " не может атаковать(выстрел - тоже атака).");
+//			return;
+//		}
+//		tapCreature();
+//		Card.ability(owner.owner, this, owner, this, _cr, _pl, txt);
+//	}
 
-		owner.owner.sendBoth("#Attack(" + owner.playerName + "," + owner.getNumberOfCreature(this) + ","
-				+ owner.owner.opponent.player.getNumberOfCreature(target) + ")");
-
-		tapCreature();
-
-		ArrayList<Creature> blocker;
-		blocker = canAnyoneBlock(target);
-		if (blocker.size() != 0) {
-			int nc = owner.creatures.indexOf(this);
-			int nt = owner.owner.opponent.player.creatures.indexOf(target);
-			owner.owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.IChoiceBlocker);
-			owner.owner.opponent.creatureWhoAttack = nc;
-			owner.owner.opponent.creatureWhoAttackTarget = nt;
-			owner.owner.opponent.server
-					.sendMessage("#ChoiceBlocker(" + owner.owner.opponent.name + "," + nc + "," + nt + ")");
-			owner.owner.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceBlocker);
-		} else {
-			fightCreature(target);
-		}
-	}
-
-	void attackPlayer(Player target) throws IOException {
-		target.effects.takeBBShield(false);
-		if (!getCanAttack()) {
-			owner.owner.printToView(0, "Повернутое/атаковавшее/т.д. существо не может атаковать.");
-			return;
-		}
-
-		owner.owner.sendBoth("#Attack(" + owner.playerName + "," + owner.getNumberOfCreature(this) + ",-1)");
-
-		tapCreature();
-
-		ArrayList<Creature> blocker = canAnyoneBlock(null);
-		if (blocker.size() != 0) {
-			int nc = owner.creatures.indexOf(this);
-			int nt = -1;
-			owner.owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.IChoiceBlocker);
-			owner.owner.opponent.creatureWhoAttack = nc;
-			owner.owner.opponent.creatureWhoAttackTarget = nt;
-			owner.owner.opponent.server
-					.sendMessage("#ChoiceBlocker(" + owner.owner.opponent.name + "," + nc + "," + nt + ")");
-			owner.owner.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceBlocker);
-		} else {
-			fightPlayer(target);
-		}
-	}
-
-	void takeDamage(int dmg, Card damageSrc, DamageSource dmgsrc, Boolean... rage) throws IOException {
-		// Protection from.
-		// if (this.isContainsOwn("Не получает ран")) {
-		// owner.owner.printToView(0, this.name + " не получает ран.");
-		// return;
-		// }
-		// if (this.isContainsOwn("Не получает от ударов ран") && (dmgsrc ==
-		// DamageSource.fightDefense || dmgsrc==DamageSource.fightOffense)) {
-		// owner.owner.printToView(0, this.name + " не получает от ударов
-		// ран.");
-		// return;
-		// }
-		// if (this.isContainsOwn("Защита от атак") && (dmgsrc ==
-		// DamageSource.shoot || dmgsrc == DamageSource.fightDefense)) {
-		// if (this.isContainsOwn("Защита от атак цвет ")) {
-		// int c = MyFunction.getNumericAfterText(this.getText(), "Защита от
-		// атак цвет ");
-		// if (damageSrc.color == c) {
-		// owner.owner.printToView(0, "У " + this.name + " защита от атак " +
-		// damageSrc.name + ".");
-		// return;
-		// }
-		// }
-		// if (this.isContainsOwn("Защита от атак стоимость менее ")) {
-		// int c = MyFunction.getNumericAfterText(this.getText(), "Защита от
-		// атак стоимость менее ");
-		// if (this.getCost(this.owner) < c) {
-		// owner.owner.printToView(0, "У " + this.name + " защита от атак " +
-		// damageSrc.name + ".");
-		// return;
-		// }
-		// }
-		// }
-
-		if (dmgsrc == DamageSource.physic) {
-			dmg -= getShield();
-			if (dmg < 0)
-				dmg = 0;
-		}
-		if (dmgsrc == DamageSource.magic) {
-			dmg -= getMagicShield();
-			if (dmg < 0)
-				dmg = 0;
-		}
-
-		damage += dmg;
-		owner.owner.sendBoth("#TakeCreatureDamage(" + owner.playerName + "," + this.id + "," + dmg + ")");
-
-		if (getTougness() <= damage) {
-			die();
-		}
-	}
-
-	void tapNoTargetAbility() throws IOException {
-		String txt = this.text.substring(this.text.indexOf("ТАП:") + "ТАП:".length() + 1,
-				this.text.indexOf(".", this.text.indexOf("ТАП:")) + 1);
-		System.out.println("ТАПТ: " + txt);
-		tapCreature();
-		Card.ability(owner.owner, this, owner, this, null, null, txt);
-	}
-
-	void tapTargetAbility(Creature _cr, Player _pl) throws IOException {
-		String txt = this.text.substring(this.text.indexOf("ТАПТ:") + "ТАПТ:".length() + 1,
-				this.text.indexOf(".", this.text.indexOf("ТАПТ:")) + 1);
-		System.out.println("ТАПТ: " + txt);
-		// Cant attack here?
-		if (!getCanAttack() && txt.contains("Выстрел")) {
-			owner.owner.server.sendMessage(this.name + " не может атаковать(выстрел - тоже атака).");
-			return;
-		}
-		tapCreature();
-		Card.ability(owner.owner, this, owner, this, _cr, _pl, txt);
-	}
-
-	void deathratle(Creature _cr, Player _pl) throws IOException {
-		String txt = this.text.substring(this.text.indexOf("Гибельт:") + "Гибельт:".length() + 1,
-				this.text.indexOf(".", this.text.indexOf("Гибельт:")) + 1);
-		System.out.println("Гибельт: " + txt);
-		Card.ability(owner.owner, this, owner, this, _cr, _pl, txt);
-	}
-
-	void battlecryNoTarget() throws IOException {
-		String txt = this.text.substring(this.text.indexOf("Найм:") + "Найм:".length() + 1,
-				this.text.indexOf(".", this.text.indexOf("Найм:")) + 1);
-		Card.ability(owner.owner, this, this.owner, this, this, null, txt);// Only
-																			// here
-																			// 3th
-																			// parametr=1th
-	}
+//	void deathratle(Permanent _target) throws IOException {
+//		String t = (_target==null) ? "Гибель:" : "Гибельт:";
+//
+//		String txt = this.text.substring(this.text.indexOf(t) + t.length() + 1,
+//				this.text.indexOf(".", this.text.indexOf(t)) + 1);
+//		System.out.println(t + " " + txt);
+//		Card.ability(this, _target, txt);
+//	}
 
 	void battlecryEquipTarget(Equpiment _eq) throws IOException {
 		String txt = this.text.substring(this.text.indexOf("Наймт:") + "Наймт:".length() + 1,
@@ -645,32 +631,15 @@ public class Creature extends Card {
 		Card.ability(owner.owner, this, owner, _eq, txt);
 	}
 
-	void battlecryTarget(Creature _cr, Player _pl) throws IOException {
-		String txt = this.text.substring(this.text.indexOf("Наймт:") + "Наймт:".length() + 1,
-				this.text.indexOf(".", this.text.indexOf("Наймт:")) + 1);
-		System.out.println("Наймт: " + txt);
-		Card.ability(owner.owner, this, owner, this, _cr, _pl, txt);
-	}
-
-	void killing() throws IOException {
-		if (text.contains("Убийство: ")) {
-			String txt = this.text.substring(this.text.indexOf("Убийство: ") + "Убийство: ".length(),
-					this.text.indexOf(".", this.text.indexOf("Убийство: ") + 1));
-			Card.ability(owner.owner, this, this.owner, null, this, null, txt);
-		}
-	}
-
-	void deathratleNoTarget(Creature _card, Player _owner) throws IOException {
-		String txt = _card.text.substring(_card.text.indexOf("Гибель:") + "Гибель:".length() + 1,
-				_card.text.indexOf(".", _card.text.indexOf("Гибель:")) + 1);
-		Card.ability(_owner.owner, _card, _owner, this, _card, null, txt);// Only
-																			// here
-																			// 3th
-																			// parametr=1th
-	}
+//	void battlecry(Permanent _target) throws IOException {
+//		String t = (_target==null) ? "Найм:" : "Наймт:";
+//		String txt = this.text.substring(this.text.indexOf(t) + t.length() + 1,
+//				this.text.indexOf(".", this.text.indexOf(t)) + 1);
+//		System.out.println(t + " " + txt);
+//		Card.ability(this, _target, txt);
+//	}
 
 	void die() throws IOException {
-		// System.out.println("Die!");
 		// Cards put to graveyard instantly, not in end of queue!
 		effects.isDie = true;
 		trueOwner.addCardToGraveyard(this);
@@ -711,11 +680,11 @@ public class Creature extends Card {
 		}
 	}
 
-	boolean isDie() {
-		if (effects.isDie)
-			return true;
-		return (getTougness() <= damage);// And other method to die!
-	}
+//	boolean isDie() {
+//		if (effects.isDie)
+//			return true;
+//		return (getTougness() <= damage);// And other method to die!
+//	}
 
 	void returnToHand() throws IOException {
 		owner.owner.sendBoth("#ReturnToHand(" + this.id + ")");

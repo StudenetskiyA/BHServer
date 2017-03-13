@@ -74,7 +74,7 @@ public class GameQueue
 
                     event.targetCr.owner.massDieCheckNeededTarget();
 
-                    System.out.println(event.targetCr.name + " удален/" + event.targetCr.owner.playerName);
+                    System.out.println(event.targetCr.name + " deleted from list/" + event.targetCr.owner.playerName);
 
                     event.targetCr.owner.removeCreatureFromList(event.targetCr);
                 }

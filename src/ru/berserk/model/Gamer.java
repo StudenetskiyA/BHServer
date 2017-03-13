@@ -26,8 +26,10 @@ public class Gamer {
 	int idCount = 0;
 	Player player;// = new Player(this, "", "", 0);
 	GameQueue gameQueue = new GameQueue(this);
-	int creatureWhoAttack;
-	int creatureWhoAttackTarget;
+	
+	String creatureWhoAttack;
+	String creatureWhoAttackTarget;
+	
 	public final Object cretureDiedMonitor = new Object();
 	public final Object monitor = new Object();
 	public final Object yesNoChoiceMonitor = new Object();
@@ -48,8 +50,10 @@ public class Gamer {
 	int choiceYesNo = 0;
 	String choiceXname;
     //For spell what aks to choice creature
-	Creature choiceCreature;
-	Player choicePlayer;
+	Permanent choicePermanent;
+	//Creature choiceCreature;
+	//Player choicePlayer;
+	//
 	ServerEndpointDemo server;
 	boolean isGameStart = false;
 
@@ -103,13 +107,6 @@ public class Gamer {
 		for (int i=0;i<adding.size();i++){
 			result.add(new Card(Card.createCardWithID(this,adding.get(i))));
 		}
-//		int i = 1;
-//		while (!commands[i].equals("$ENDDECK")) {
-//		 System.out.println("Card = "+commands[i]);
-//			Card tmp = new Card(Card.createCardWithID(this,commands[i]));
-//			result.add(tmp);
-//			i++;
-//		}
 		BHSqlServer.disconnect();
 		Deck r = new Deck(result); 
 		return r;
@@ -168,6 +165,7 @@ public class Gamer {
 
 	private void startGame() throws IOException {
 		// Begin game
+	
 		player.deck.cards.remove(0);// Remove hero from deck
 		Main.randomNum = ThreadLocalRandom.current().nextInt(100, 999 + 1);// reroll
 																			// for
