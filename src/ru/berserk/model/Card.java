@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.ListIterator;
 
 import ru.berserk.model.Creature.DamageSource;
+import ru.berserk.model.MyFunction.Effect;
 import ru.berserk.model.MyFunction.PlayerStatus;
 import ru.berserk.model.MyFunction.WhatAbility;
 
@@ -334,7 +335,7 @@ class Card {
 	    case "Гелрос":
             return new Card(0, name, "", 6, 0, 0, 3, "ТАПТ:3 Нанести физикой ран 1. Убийство: Стать активным.", 0, 24);
 	    case "Щит совы":
-            return new Card(1, name, "Броня", 1, 3, 0, 0, "Герой получает Щит 1.", 0, 4);
+            return new Card(1, name, "Броня", 1, 3, 0, 0, "Герою: Щит 1.", 0, 4);
 	    case "Дроу-арбалетчик":
             return new Card(4, name, "", 6, 2, 3, 0, "Наймт: Нанести физикой ран 1. Повторить раз 3. Убийство: Получить плюс к выстрелам 1.", 2, 2);
 	    case "Морфианна":
@@ -344,7 +345,10 @@ class Card {
 	    case "Ходячий камень":
             return new Card(6, name, "", 6, 2, 0, 0, "Щит 1.", 6, 6);
 	    case "Бесшумный клинок":
-            return new Card(2, name, "Оружие", 3, 3, 0, 3, "ТАПТ: Сражение оружием.", 3, 4);
+            return new Card(2, name, "Оружие", 3, 3, 0, 3, "Герою: Ловкость. ТАПТ: Сражение оружием.", 3, 4);
+	    case "Прыжок":
+            return new Card(1, name, "", 6, 1, 1, 0, "Получает до конца хода 'Ловкость Стремительность'.", 0, 0);
+
 	    default:
 			System.out.println("Ошибка - Неопознанная карта:" + name);
 			return null;
@@ -362,8 +366,13 @@ class Card {
 		// Super function! Do all what do cards text!
 		// Which Card player(_who), who player(_whis), on what creature(_cr, may
 		// null), on what player(_pl, may null), text to play(txt)
+		if (txt.contains("Получает до конца хода '")) {
+		String s = MyFunction.getTextBetweenSymbol(txt, "Получает до конца хода '",
+				"'");
+		_target.eff.takeTemporaryAdditionalText(s, 1);
+	}
 		if (txt.contains("Сражение оружием")) {
-			_who.fight(_target);
+			_who.attack(_target);
 		}
 		if (txt.contains("Физический удар-убийство на ") ) {
 			int dmg = MyFunction.getNumericAfterText(txt, "Физический удар-убийство на ");
@@ -393,7 +402,7 @@ class Card {
 		}
 		if (txt.contains("Персонаж получает Кошмар ")) {
 			int dmg = MyFunction.getNumericAfterText(txt, "Персонаж получает Кошмар ");
-			_target.eff.takeNightmare(dmg);
+			_target.eff.takeEffect(Effect.nightmare,dmg);
 		}
 		if (txt.contains("Нанести магией ран ")) {
 			int dmg = MyFunction.getNumericAfterText(txt, "Нанести магией ран ");
@@ -407,7 +416,7 @@ class Card {
 		}
 		if (txt.contains("Получить плюс к выстрелам ")) {
 			int dmg = MyFunction.getNumericAfterText(txt, "Получить плюс к выстрелам ");
-			_target.eff.takeBonusToShoot(dmg);;
+			_target.eff.takeEffect(Effect.bonusToShoot,dmg);
 		}
 		if (txt.contains("Стать активным")) {
 			_target.untap();

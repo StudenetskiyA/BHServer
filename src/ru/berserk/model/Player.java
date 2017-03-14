@@ -232,7 +232,7 @@ public class Player extends Permanent {
 			ListIterator<Creature> crList = crArray.listIterator();
 			while (crList.hasNext()) {
 				Creature cr = crList.next();
-				if (cr != null && crDied.size() > 0 && !cr.activatedAbilityPlayed) {
+				if (cr != null && crDied.size() > 0) {
 					System.out.println("Падальщик, Orc-revenger for " + playerName);
 					if (cr.targetType == 0) {
 						// Today only Ork. When you add more with target=0,
@@ -244,9 +244,6 @@ public class Player extends Permanent {
 						owner.choiceXcost = 0;
 						owner.choiceXcostExactly = 0;
 						owner.choiceXname = "Орк-мститель";
-						cr.activatedAbilityPlayed = true;// if you remove it,
-															// may play any
-															// times at turn.
 						owner.setPlayerGameStatus(MyFunction.PlayerStatus.searchX);
 						owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceTarget);
 						owner.sendChoiceSearch(false, "Орк-мститель ищет в колоде.");
@@ -269,7 +266,6 @@ public class Player extends Permanent {
 							// pause until player choice target.
 							owner.sendChoiceTarget(cr.name + " просит выбрать цель.");
 							System.out.println("pause");
-							owner.activatedAbility.creature.activatedAbilityPlayed = true;
 							synchronized (owner.cretureDiedMonitor) {
 								try {
 									owner.cretureDiedMonitor.wait();
@@ -280,11 +276,6 @@ public class Player extends Permanent {
 							System.out.println("resume");
 						} else {
 							owner.printToView(0, "Целей для " + cr.name + " нет.");
-							cr.activatedAbilityPlayed = true;// If you can't
-																// target, after
-																// you can't
-																// play this
-																// ability
 						}
 					}
 				}
@@ -479,10 +470,10 @@ public class Player extends Permanent {
 			if (p.text.contains("В начале хода")
 					|| p.text.contains("В начале противника хода") && !p.isDie() && isOnBoard)
 				owner.opponent.gameQueue.push(new GameQueue.QueueEvent("Upkeep", p, 0));
-			if (p.effects.turnToDie == 0 && !p.isDie() && isOnBoard) {
-				p.effects.takeDieEffect();
-				owner.opponent.gameQueue.push(new GameQueue.QueueEvent("Die", p, 0));
-			}
+//			if (p.effects.turnToDie == 0 && !p.isDie() && isOnBoard) {
+//				p.effects.takeDieEffect();
+//				owner.opponent.gameQueue.push(new GameQueue.QueueEvent("Die", p, 0));
+//			}
 			while (owner.gameQueue.size() != 0 || owner.opponent.gameQueue.size() != 0) {
 				owner.opponent.gameQueue.responseAllQueue();
 				owner.gameQueue.responseAllQueue();
@@ -498,10 +489,10 @@ public class Player extends Permanent {
 					|| p.text.contains("В начале вашего хода") && !p.isDie() && isOnBoard) {
 				owner.gameQueue.push(new GameQueue.QueueEvent("Upkeep", p, 0));
 			}
-			if (p.effects.turnToDie == 0 && !p.isDie() && isOnBoard) {
-				p.effects.takeDieEffect();
-				owner.gameQueue.push(new GameQueue.QueueEvent("Die", p, 0));
-			}
+//			if (p.effects.turnToDie == 0 && !p.isDie() && isOnBoard) {
+//				p.effects.takeDieEffect();
+//				owner.gameQueue.push(new GameQueue.QueueEvent("Die", p, 0));
+//			}
 			// untap
 			p.isSummonedJust = false;
 			p.untapCreature();
@@ -606,34 +597,42 @@ public class Player extends Permanent {
 				// creature
 				owner.board.addCreatureToBoard(_card, this);
 			} else if (_card.type == 3) {
-				// TODO Equpiment command server
-				owner.sendBoth("#PutEquipToBoard(" + playerName + "," + _card.name + "," + _card.id + ")");
-				if (_card.creatureType.equals("Броня")) {
-					if (this.equpiment[0] != null)
-						removeEqupiment(this.equpiment[0]);
-					this.equpiment[0] = new Equpiment(_card, this);
-				} else if (_card.creatureType.equals("Амулет")) {
-					if (this.equpiment[1] != null)
-						removeEqupiment(this.equpiment[1]);
-					this.equpiment[1] = new Equpiment(_card, this);
-				} else if (_card.creatureType.equals("Оружие")) {
-					if (this.equpiment[2] != null)
-						removeEqupiment(this.equpiment[2]);
-					this.equpiment[2] = new Equpiment(_card, this);
-				}
-			} else if (_card.type == 4) {
-				// Event is equip with n=3
-				owner.sendBoth("#PutEquipToBoard(" + playerName + "," + _card.name + "," + _card.id + ")");
-				if (this.equpiment[3] != null)
-					removeEqupiment(this.equpiment[3]);
-				this.equpiment[3] = new Equpiment(_card, this);
-			}
+				equip(_card);
+			} 
+//			else if (_card.type == 4) {
+//				// Event is equip with n=3
+//				owner.sendBoth("#PutEquipToBoard(" + playerName + "," + _card.name + "," + _card.id + ")");
+//				if (this.equpiment[3] != null)
+//					removeEqupiment(this.equpiment[3]);
+//				this.equpiment[3] = new Equpiment(_card, this);
+//			}
 
 		} else {
 			owner.printToView(0, "Не хватает монет.");
 		}
 	}
 
+	void equip(Card _card) throws IOException{
+		owner.sendBoth("#PutEquipToBoard(" + playerName + "," + _card.name + "," + _card.id + ")");
+		if (_card.creatureType.equals("Броня")) {
+			if (this.equpiment[0] != null)
+				removeEqupiment(this.equpiment[0]);
+			this.equpiment[0] = new Equpiment(_card, this);
+		} else if (_card.creatureType.equals("Амулет")) {
+			if (this.equpiment[1] != null)
+				removeEqupiment(this.equpiment[1]);
+			this.equpiment[1] = new Equpiment(_card, this);
+		} else if (_card.creatureType.equals("Оружие")) {
+			if (this.equpiment[2] != null)
+				removeEqupiment(this.equpiment[2]);
+			this.equpiment[2] = new Equpiment(_card, this);
+		}
+		String tapT = "Герою:";
+		String plEq =	_card.text.substring(_card.text.indexOf(tapT) + tapT.length() + 1,
+				_card.text.indexOf(".", _card.text.indexOf(tapT) + 1));
+		this.eff.takeAdditionalText(plEq);
+	}
+	
 	void drawCard() throws IOException {
 		if (deck.haveTopDeck())
 			addCardToHand(deck.drawTopDeck());
@@ -653,68 +652,6 @@ public class Player extends Permanent {
 		removeCardFromGraveyard(c);
 	}
 
-//	void takeDamage(int dmg, DamageSource dmgsrc) throws IOException {
-//		// equpiment[1]
-//		// if (equpiment[1] != null) {
-//		// if (equpiment[1].name.equals("Браслет подчинения")) {
-//		// //Плащ исхара
-//		// if (dmg != 1)
-//		// owner.printToView(0, "Браслет подчинения свел атаку к 1.");
-//		// owner.opponent.printToView(0, "Браслет подчинения свел атаку к 1.");
-//		// dmg = 1;
-//		// }
-//		// }
-//		// //equpiment[0]
-//		// if (equpiment[0] != null) {
-//		// if (equpiment[0].name.equals("Плащ Исхара")) {
-//		// //Плащ исхара
-//		// int tmp = dmg;
-//		// dmg -= equpiment[0].hp;
-//		// equpiment[0].hp -= tmp;
-//		// if (dmg < 0) dmg = 0;
-//		// //TODO Send equip effect
-//		// owner.sendBoth("#AddEquipEffectHP("+owner.player.playerName+","+"0"+","+equpiment[0].hp+")");
-//		// owner.printToView(0, "Плащ Исхара предотвратил " + (tmp - dmg) + "
-//		// урона.");
-//		// owner.opponent.printToView(0, "Плащ Исхара предотвратил " + (tmp -
-//		// dmg) + " урона.");
-//		// if (equpiment[0].hp <= 0) {
-//		// removeEqupiment(equpiment[0]);
-//		// equpiment[0] = null;
-//		// }
-//		// }
-//		// }
-//
-//		if (effects.iceShield > 0) {
-//			dmg -= effects.getIceShield();
-//			effects.takeIceShield(-dmg);
-//			if (dmg < 0)
-//				dmg = 0;
-//		}
-//
-//		if (dmgsrc == DamageSource.physic) {
-//			dmg -= effects.getShield();
-//			if (dmg < 0)
-//				dmg = 0;
-//		}
-//		if (dmgsrc == DamageSource.magic) {
-//			dmg -= effects.getMagicShield();
-//			if (dmg < 0)
-//				dmg = 0;
-//		}
-//
-//		damage += dmg;
-//		if (dmg != 0) {
-//			owner.sendBoth("#TakeHeroDamage(" + playerName + "," + dmg + ")");
-//			if (equpiment[0] != null)
-//				equpiment[0].takeDamage(1);
-//		}
-//
-//		if (hp <= damage) {
-//			loseGame();
-//		}
-//	}
-
 	void loseGame() throws IOException {
 		if (owner.opponent != null) {
 			owner.opponent.server.sendMessage("#LoseGame(" + playerName + ",0)");
@@ -726,36 +663,6 @@ public class Player extends Permanent {
 		owner.removePlayer();
 	}
 
-//	void abilityNoTarget(int n) throws IOException {
-//		String txt = "";
-//		if (n == 0) {
-//			txt = this.text.substring(this.text.indexOf("ТАП:") + "ТАП:0".length() + 1,
-//					this.text.indexOf(".", this.text.indexOf("ТАП:")) + 1);
-//			System.out.println("ТАП HERO: " + txt);
-//		} else {
-//			txt = this.text.substring(this.text.indexOf("2ТАП:") + "2ТАП:0".length() + 1,
-//					this.text.indexOf(".", this.text.indexOf("2ТАП:")) + 1);
-//			System.out.println("ТАП2 HERO: " + txt);
-//		}
-//		tap();
-//		Card.ability(this, null, txt);
-//	}
-
-//	void ability(int n, Permanent _target) throws IOException {
-//		String txt = "";
-//		if (n == 0) {
-//			txt = this.text.substring(this.text.indexOf("ТАПТ:") + "ТАПТ: ".length() + 1,
-//					this.text.indexOf(".", this.text.indexOf("ТАПТ:") + 1));
-//			System.out.println("TAPT HERO: " + txt);
-//		} else {
-//			txt = this.text.substring(this.text.indexOf("2ТАПТ:") + "2ТАПТ: ".length() + 1,
-//					this.text.indexOf(".", this.text.indexOf("2ТАПТ:") + 1));
-//			System.out.println("TAPT2 HERO: " + txt);
-//		}
-//		tap();
-//		Card.ability(this, _target, txt);
-//	}
-
 	public Card searchInGraveyard(String name) {
 		for (int i = 0; i <= graveyard.size(); i++) {
 			if (graveyard.get(i).name.equals(name))
@@ -764,24 +671,11 @@ public class Player extends Permanent {
 		return null;
 	}
 
-//	public void tap() throws IOException {
-//		// TODO #Tap
-//		owner.sendBoth("#TapPlayer(" + playerName + ",1)");
-//		isTapped = true;
-//	}
-
-//	public void untap() throws IOException {
-//		owner.sendBoth("#TapPlayer(" + playerName + ",0)");
-//		if (isTapped) {
-//			if (this.effects.nightmare != 0) {
-//				this.takeDamage(this.effects.nightmare, Creature.DamageSource.magic);
-//				this.effects.takeNightmare(-this.effects.nightmare);
-//			}
-//		}
-//		isTapped = false;
-//	}
-
 	public void removeEqupiment(Equpiment eq) throws IOException {
+		String tapT = "Герою:";
+		String txt =	eq.text.substring(eq.text.indexOf(tapT) + tapT.length() + 1,
+				eq.text.indexOf(".", eq.text.indexOf(tapT) + 1));
+		this.eff.looseAdditionalText(txt);
 		eq.die();
 	}
 

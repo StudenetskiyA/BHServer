@@ -14,6 +14,14 @@ public class Board {
     public Board() {
     }
 
+    public static Permanent getPermanentById(Player _pl, String _id){
+    	if (_id.equals(_pl.playerName+"0"))
+    		return _pl;
+    	else if (_id.equals(_pl.owner.opponent.player.playerName+"0"))
+    		return _pl.owner.opponent.player;
+    	else return getCreatureById(_pl,_id);
+    }
+    
     public static Creature getCreatureById(Player _pl, String _id){
     	for (int i=0;i<_pl.creatures.size();i++){
     		if (_pl.creatures.get(i).id.equals(_id)) return _pl.creatures.get(i);

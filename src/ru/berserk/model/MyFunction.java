@@ -335,5 +335,12 @@ public class MyFunction {
         }
         return n;
     }
-
+    
+    public static String deleteTextFrom(String from,String del){
+    	if (!from.contains(del)) return from;
+    	else {
+    		int i = from.indexOf(del);
+    		return from.substring(0, i)+from.substring(i+del.length());
+    	}
+    }
 }

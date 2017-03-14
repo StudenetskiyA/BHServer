@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.ListIterator;
 
 import ru.berserk.model.Creature.DamageSource;
+import ru.berserk.model.MyFunction.Effect;
+import ru.berserk.model.Permanent.Effects.TemporaryTextEffect;
 import ru.berserk.model.Player.Effects;
 
 public class Permanent extends Card {
@@ -13,7 +15,6 @@ public class Permanent extends Card {
 	Permanent thisP;
 	Creature isThisCreature;
 	Player isThisPlayer;
-
 	boolean isTapped = false;
 	int damage;
 	int shield = 0;
@@ -29,6 +30,7 @@ public class Permanent extends Card {
 		int shield = 0;
 		int magicShield = 0;
 		int iceShield = 0;
+		boolean upkeepPlayed = false;
 		ArrayList<TemporaryTextEffect> temporaryTextEffects = new ArrayList<>();
 
 		class TemporaryTextEffect {
@@ -45,14 +47,41 @@ public class Permanent extends Card {
 			whis = _pl;
 		}
 
-		void takeNightmare(int n) throws IOException {
-			nightmare += n;
-			if (nightmare < 0)
-				nightmare = 0;
+		void takeEffect(Effect ef,int n) throws IOException{
+			int num=0;
+			switch (ef) {
+			case nightmare:
+				nightmare += n;
+				n=nightmare;
+				break;
+			case bonusToShoot:
+				bonusToShoot += n;
+				n=bonusToShoot;
+				break;
+			default:
+				break;
+			}
+			
 			ownerGamer.sendBoth(
-					"#TakeEffect(" + id + "," + MyFunction.Effect.nightmare.getValue() + "," + nightmare + ")");
+					"#TakeEffect(" + id + "," + ef.getValue() + "," + num + ")");
 		}
-
+		
+		void looseEffect(Effect ef) throws IOException{
+			switch (ef) {
+			case nightmare:
+				nightmare = 0;
+				break;
+			case bonusToShoot:
+				bonusToShoot = 0;
+				break;
+			default:
+				break;
+			}
+			
+			ownerGamer.sendBoth(
+					"#LooseEffect(" + id + "," + ef.getValue() + ")");
+		}
+		
 		String getAdditionalText() {
 			String tmp = additionalText;
 			for (TemporaryTextEffect te : temporaryTextEffects) {
@@ -61,14 +90,49 @@ public class Permanent extends Card {
 			return tmp;
 		}
 
-		// TODO Universal function to take effect
-		void takeBonusToShoot(int n) throws IOException {
-			bonusToShoot += n;
-			if (bonusToShoot < 0)
-				bonusToShoot = 0;
-			ownerGamer.sendBoth(
-					"#TakeEffect(" + id + "," + MyFunction.Effect.bonusToShoot.getValue() + "," + bonusToShoot + ")");
+		void looseAdditionalText(String txt) throws IOException {
+			ownerGamer.sendBoth("#LooseText(" + whis.id + "," + txt + ")");
 		}
+
+		void takeAdditionalText(String txt) throws IOException {
+			additionalText += txt;
+			ownerGamer.sendBoth("#TakeText(" + whis.id + "," + txt + ")");
+		}
+
+		void takeTemporaryAdditionalText(String txt, int lenght) throws IOException {
+			temporaryTextEffects.add(new TemporaryTextEffect(txt, lenght));
+			ownerGamer.sendBoth("#TakeText(" + whis.id + "," + txt + ")");
+		}
+
+		int getBonusShield() {
+			return 0;
+		}
+
+		public int getBonusMagicShield() {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+	
+		public void EOT() throws IOException {
+			upkeepPlayed = false;
+			//looseBonusPowerUEOT();
+			ArrayList<TemporaryTextEffect> efCopy = new ArrayList<>(temporaryTextEffects);
+			ListIterator<TemporaryTextEffect> temp = efCopy.listIterator();
+			while (temp.hasNext()) {
+				TemporaryTextEffect te = temp.next();
+				te.lenght--;
+				if (te.lenght <= 0) {
+					looseAdditionalText(te.textEffect);
+					temporaryTextEffects.remove(te);
+				}
+			}
+
+//			if (whis.text.contains(" В конце хода если не имеет ран, вернуть его в руку.") && whis.damage == 0) {
+//				whis.returnToHand();
+//			}
+
+		}
+
 	}
 
 	public Permanent(Gamer o, int cost, String name, String creatureType, int color, int type, int targetType,
@@ -88,7 +152,7 @@ public class Permanent extends Card {
 			ownerGamer.sendBoth("#Tap(" + id + ",0)");
 			if (eff.nightmare != 0) {
 				this.takeDamage(eff.nightmare, this, Creature.DamageSource.magic);
-				eff.takeNightmare(-eff.nightmare);
+				eff.looseEffect(Effect.nightmare);
 			}
 		}
 		isTapped = false;
@@ -116,8 +180,14 @@ public class Permanent extends Card {
 
 		damage += dmg;
 
-		if (dmg != 0)
+		if (dmg != 0) {
 			ownerGamer.sendBoth("#TakeDamage(" + id + "," + dmg + ")");
+
+			if (isThisPlayer != null) {
+				if (isThisPlayer.equpiment[0] != null)
+					isThisPlayer.equpiment[0].takeDamage(1);
+			}
+		}
 
 		if (getTougness() <= damage) {
 			if (isThisCreature != null)
@@ -129,7 +199,7 @@ public class Permanent extends Card {
 
 	void attack(Permanent target) throws IOException {
 		if (!getCanAttack()) {
-			ownerGamer.printToView(0, "Повернутое/атаковавшее/т.д. существо не может атаковать.");
+			ownerGamer.printToView(0, this.name + " не может атаковать.");
 			return;
 		}
 		ownerGamer.sendBoth("#Attack(" + id + "," + target.id + ")");
@@ -156,24 +226,29 @@ public class Permanent extends Card {
 		tap();
 		Card.ability(this, this, _target, txt);
 	}
-	
+
 	void deathratle(Permanent _target) throws IOException {
-		String t = (_target==null) ? "Гибель:" : "Гибельт:";
+		String t = (_target == null) ? "Гибель:" : "Гибельт:";
 
 		String txt = this.text.substring(this.text.indexOf(t) + t.length() + 1,
 				this.text.indexOf(".", this.text.indexOf(t)) + 1);
 		System.out.println(t + " " + txt);
 		Card.ability(this, this, _target, txt);
 	}
+
 	void battlecry(Permanent _target) throws IOException {
-		String t = (_target==null) ? "Найм:" : "Наймт:";
+		String t = (_target == null) ? "Найм:" : "Наймт:";
 		String txt = this.text.substring(this.text.indexOf(t) + t.length() + 1,
 				this.text.indexOf(".", this.text.indexOf(t)) + 1);
 		System.out.println(t + " " + txt);
 		Card.ability(this, this, _target, txt);
 	}
-	
+
 	void fight(Permanent second) throws IOException {
+
+		if (isThisPlayer != null && isThisPlayer.equpiment[2] != null)
+			isThisPlayer.equpiment[2].takeDamage(1);
+
 		second.takeDamage(this.getPower(), this, getPowerType());
 		if (!second.isTapped) {
 			if (second.getPower() > 0) {
@@ -189,36 +264,6 @@ public class Permanent extends Card {
 		if (!second.isDie() && this.isDie())
 			second.killing();
 	}
-
-	// void fightCreature(Creature second) throws IOException {
-	// DamageSource att = this.getPowerType();
-	// DamageSource def = second.getPowerType();
-	//
-	// if (!second.isTapped) {// First is passive
-	// if ((second.text.contains("Первый удар.")) &&
-	// (!this.text.contains("Первый удар."))) {
-	// if (this.damage < this.hp)
-	// second.takeDamage(this.getPower(), this, att);
-	// this.takeDamage(second.getPower(), second, def);
-	// } else if ((this.text.contains("Первый удар.")) &&
-	// (!second.text.contains("Первый удар."))) {
-	// second.takeDamage(this.getPower(), this, att);
-	// if (second.damage < second.hp)
-	// this.takeDamage(second.getPower(), second, def);
-	// } else {
-	// second.takeDamage(this.getPower(), this, att);
-	// this.takeDamage(second.getPower(), second, def);
-	// }
-	// } else {
-	// owner.owner.printToView(0, this.name + " ударяет " + second.name + ".");
-	// second.takeDamage(this.getPower(), this, att);
-	// }
-	// // Killing
-	// if (second.isDie() && !this.isDie())
-	// this.killing();
-	// if (!second.isDie() && this.isDie())
-	// second.killing();
-	// }
 
 	void killing() throws IOException {
 		if (getText().contains("Убийство: ")) {
@@ -240,11 +285,26 @@ public class Permanent extends Card {
 			return false;
 		if (isThisCreature != null && isThisCreature.getIsSummonedJust())
 			return false;
+		if (isThisPlayer != null && isThisPlayer.equpiment[2] == null)
+			return false;
+
 		return !MyFunction.textNotInTake(getText()).contains("Не может атаковать");
 	}
 
 	String getText() {
-		return text + "." + eff.getAdditionalText();
+		String tapT = "Герою:";
+		String plEq = "";
+		if (isThisPlayer != null) {
+			for (int i = 0; i <= 2; i++) {
+				if (isThisPlayer.equpiment[i] != null) {
+					plEq += isThisPlayer.equpiment[i].text.substring(
+							isThisPlayer.equpiment[i].text.indexOf(tapT) + tapT.length() + 1,
+							isThisPlayer.equpiment[i].text.indexOf(".",
+									isThisPlayer.equpiment[i].text.indexOf(tapT) + 1));
+				}
+			}
+		}
+		return text + ". " + eff.getAdditionalText() + ". " + plEq;
 	}
 
 	int getTougness() {
@@ -252,11 +312,21 @@ public class Permanent extends Card {
 	}
 
 	int getShield() {
-		return shield;// + effects.getBonusShield();
+		int sh = 0;
+		// TODO If one have 2 or more shield.
+		if (getText().contains("Щит "))
+			sh += MyFunction.getNumericAfterText(getText(), "Щит ");
+
+		return sh + eff.getBonusShield();
 	}
 
 	int getMagicShield() {
-		return magicShield;// + effects.getBonusShield();
+		int sh = 0;
+		// TODO If one have 2 or more shield.
+		if (getText().contains("Магический щит "))
+			sh += MyFunction.getNumericAfterText(text, "Магический щит ");
+
+		return sh + eff.getBonusMagicShield();
 	}
 
 	boolean isDie() {

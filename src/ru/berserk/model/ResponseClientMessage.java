@@ -174,23 +174,18 @@ public class ResponseClientMessage extends Thread {
 				}
 				dontDoQueue = true;
 				freeMonitor = true;
-			} else if (fromServer.startsWith("$EQUIPTARGET(")) { // remake with
-																	// id
+			} else if (fromServer.startsWith("$EQUIPTARGET(")) { //EqID, TargetID
 				ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
 				gamer.status = PlayerStatus.MyTurn;
-				int equip = Integer.parseInt(parameter.get(1));// ID?
-				Creature t = Board.getCreatureById(player, parameter.get(3));
-				if (parameter.get(2).equals("1")) {
-					if (parameter.get(3).equals("-1"))
-						player.equpiment[equip].tapAbility(gamer.opponent.player);
-					else
-						player.equpiment[equip].tapAbility(null);
-				} else {
-					if (parameter.get(3).equals("-1"))
-						player.equpiment[equip].tapAbility(player);
-					else
-						player.equpiment[equip].tapAbility(null);
-				}
+				Equpiment equip = Board.getEqupimentByID(player, parameter.get(0));// ID?
+				Permanent target;
+				if (parameter.get(1).equals(player.playerName+"0"))
+					target = player;
+				else if (parameter.get(1).equals(gamer.opponent.player.playerName+"0"))
+					target = gamer.opponent.player;
+				else
+					target = Board.getCreatureById(player, parameter.get(1));
+				equip.tapAbility(target);
 			} else if (fromServer.startsWith("$HEROTARGET(")) {// Nability,idTarget,cost
 				ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
 				player.untappedCoin -= Integer.parseInt(parameter.get(2));
@@ -207,48 +202,17 @@ public class ResponseClientMessage extends Thread {
 				dontDoQueue = true;
 			} else if (fromServer.startsWith("$BLOCKER(")) {
 				ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
-				Creature cr = gamer.opponent.player.creatures.get(Integer.parseInt(parameter.get(1)));// Who
-				if (Integer.parseInt(parameter.get(2)) == -1) {
-					if (Integer.parseInt(parameter.get(3)) == -1) {
-						// Fight with hero
-						cr.fight(player);
-						if (Integer.parseInt(parameter.get(4)) == 1) {
-							player.tap();
-						}
-					} else {
-						Creature block = player.creatures.get(Integer.parseInt(parameter.get(3)));
-						// Fight with bocker
-						cr.fight(block);
-						if (Integer.parseInt(parameter.get(4)) == 1) {
-							block.tap();
-						}
-					}
-				} else {
-					if (Integer.parseInt(parameter.get(3)) == -2) {
-						// Fight with first target
-						Creature block = player.creatures.get(Integer.parseInt(parameter.get(2)));
-						cr.fight(block);
-					} else {
-						if (Integer.parseInt(parameter.get(3)) != -1) {
-							Creature block = player.creatures.get(Integer.parseInt(parameter.get(3)));
-							// Fight with blocker
-							cr.fight(block);
-							if (Integer.parseInt(parameter.get(4)) == 1) {
-								block.tap();
-							}
-						} else {
-							// Fight with blocker-hero
-							cr.fight(player);
-							if (Integer.parseInt(parameter.get(4)) == 1) {
-								player.tap();
-							}
-						}
-					}
+				Permanent who = Board.getPermanentById(player, parameter.get(0));
+				Permanent target = Board.getPermanentById(player, parameter.get(1));;
+				
+				who.fight(target);
+
+				if (Integer.parseInt(parameter.get(2)) == 1) {
+					target.tap();
 				}
 				gamer.setPlayerGameStatus(PlayerStatus.EnemyTurn);
 				gamer.opponent.setPlayerGameStatus(PlayerStatus.MyTurn);
 				revertQueue = true;
-				// dontDoQueue = true;
 			} else if (fromServer.startsWith("$PLAYCARD(")) {
 				ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
 				Card tmp = player.getCardByID(parameter.get(1));

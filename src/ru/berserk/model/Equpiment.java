@@ -58,8 +58,8 @@ public class Equpiment extends Card {
     	String tapT = (_target == null) ? "ТАП:" : "ТАПТ:";
         String txt = this.text.substring(this.text.indexOf(tapT) + tapT.length() + 1, this.text.indexOf(".", this.text.indexOf(tapT)) + 1);
         System.out.println(tapT +" " + txt);
-        tap();
         Card.ability(this, owner, _target, txt);
+        tap();
     }
 
     public void cry(Permanent _target) throws IOException {

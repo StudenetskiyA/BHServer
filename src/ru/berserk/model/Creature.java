@@ -4,13 +4,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.ListIterator;
 
-import ru.berserk.model.Creature.DamageSource;
-
 // Created by StudenetskiyA on 30.12.2016.
 
 public class Creature extends Permanent {
 	boolean isSummonedJust;
-	boolean activatedAbilityPlayed = false;
+	
 
 	Player owner;
 	Player trueOwner;// for change control
@@ -35,7 +33,7 @@ public class Creature extends Permanent {
 		private int bonusToShoot = 0;
 		int turnToDie = 999;
 		boolean vulnerability = false;
-		boolean upkeepPlayed = false;
+
 		boolean battlecryPlayed = false;
 
 		boolean deathPlayed = false;
@@ -71,27 +69,27 @@ public class Creature extends Permanent {
 			temporaryTextEffects = new ArrayList<>(ef.temporaryTextEffects);
 		}
 
-		public void EOT() throws IOException {
-			upkeepPlayed = false;
-			turnToDie--;
-			looseBonusPowerUEOT();
-			ArrayList<TemporaryTextEffect> efCopy = new ArrayList<>(temporaryTextEffects);
-			ListIterator<TemporaryTextEffect> temp = efCopy.listIterator();
-			while (temp.hasNext()) {
-				TemporaryTextEffect te = temp.next();
-				te.lenght--;
-				if (te.lenght <= 0) {
-					looseAdditionalText(te.textEffect);
-					temporaryTextEffects.remove(te);
-				}
-			}
-			activatedAbilityPlayed = false;
-
-			if (whis.text.contains(" В конце хода если не имеет ран, вернуть его в руку.") && whis.damage == 0) {
-				whisCreature.returnToHand();
-			}
-
-		}
+//		public void EOT() throws IOException {
+//			upkeepPlayed = false;
+//			turnToDie--;
+//			looseBonusPowerUEOT();
+//			ArrayList<TemporaryTextEffect> efCopy = new ArrayList<>(temporaryTextEffects);
+//			ListIterator<TemporaryTextEffect> temp = efCopy.listIterator();
+//			while (temp.hasNext()) {
+//				TemporaryTextEffect te = temp.next();
+//				te.lenght--;
+//				if (te.lenght <= 0) {
+//					looseAdditionalText(te.textEffect);
+//					temporaryTextEffects.remove(te);
+//				}
+//			}
+//			activatedAbilityPlayed = false;
+//
+//			if (whis.text.contains(" В конце хода если не имеет ран, вернуть его в руку.") && whis.damage == 0) {
+//				whisCreature.returnToHand();
+//			}
+//
+//		}
 
 //		String getAdditionalText() {
 //			String tmp = additionalText;
@@ -176,12 +174,6 @@ public class Creature extends Permanent {
 		// MyFunction.Effect.poison.getValue() + "," + p + ")");
 		// }
 
-		void takeBonusToScoot(int p) throws IOException {
-			bonusToShoot += p;
-			owner.owner.sendBoth(
-					"#TakeCreatureIdEffect(" + whis.id + "," + MyFunction.Effect.bonusToShoot.getValue() + "," + bonusToShoot + ")");
-		}
-
 		void takeTurnToDie(int t) throws IOException {
 			turnToDie = t;
 			owner.owner.sendBoth(
@@ -194,11 +186,11 @@ public class Creature extends Permanent {
 					+ "," + 0 + ")");
 		}
 
-		void takeDieEffect() throws IOException {
-			isDie = true;
-			owner.owner.sendBoth(
-					"#TakeCreatureIdEffect(" + whis.id + "," + MyFunction.Effect.die.getValue() + "," + 0 + ")");
-		}
+//		void takeDieEffect() throws IOException {
+//			isDie = true;
+//			owner.owner.sendBoth(
+//					"#TakeCreatureIdEffect(" + whis.id + "," + MyFunction.Effect.die.getValue() + "," + 0 + ")");
+//		}
 
 		void takeBonusPowerUEOT(int n) throws IOException {
 			bonusPowerUEOT += n;
@@ -236,19 +228,19 @@ public class Creature extends Permanent {
 					+ "," + n + ")");
 		}
 
-		void takeAdditionalText(String txt) throws IOException {
-			additionalText += txt;
-			owner.owner.sendBoth("#TakeCreatureIdText(" + whis.id + "," + txt + ")");
-		}
+//		void takeAdditionalText(String txt) throws IOException {
+//			additionalText += txt;
+//			owner.owner.sendBoth("#TakeCreatureIdText(" + whis.id + "," + txt + ")");
+//		}
 
-		void looseAdditionalText(String txt) throws IOException {
-			owner.owner.sendBoth("#LooseCreatureIdText(" + whis.id + "," + txt + ")");
-		}
+//		void looseAdditionalText(String txt) throws IOException {
+//			owner.owner.sendBoth("#LooseCreatureIdText(" + whis.id + "," + txt + ")");
+//		}
 
-		void takeTemporaryAdditionalText(String txt, int lenght) throws IOException {
-			temporaryTextEffects.add(new TemporaryTextEffect(txt, lenght));
-			owner.owner.sendBoth("#TakeCreatureIdText(" + whis.id + "," + txt + ")");
-		}
+//		void takeTemporaryAdditionalText(String txt, int lenght) throws IOException {
+//			temporaryTextEffects.add(new TemporaryTextEffect(txt, lenght));
+//			owner.owner.sendBoth("#TakeCreatureIdText(" + whis.id + "," + txt + ")");
+//		}
 
 	}
 
@@ -275,9 +267,9 @@ public class Creature extends Permanent {
 //	}
 
 	boolean getIsSummonedJust() {
-		if (text.contains("Рывок"))
+		if (text.contains("Стремительность"))
 			return false;
-		if (effects.additionalText.contains("Рывок"))
+		if (effects.additionalText.contains("Стремительность"))
 			return false;
 		// Chain dog take charge
 		if ((name.equals("Цепной пес"))) {
@@ -375,12 +367,12 @@ public class Creature extends Permanent {
 		name = _card.name;
 		owner = _owner;
 		trueOwner = _owner;
-		if (text.contains("Щит ")) {
-			shield = MyFunction.getNumericAfterText(text, "Щит ");
-		}
-		if (text.contains("Магический щит ")) {
-			magicShield = MyFunction.getNumericAfterText(text, "Магический щит ");
-		}
+//		if (text.contains("Щит ")) {
+//			shield = MyFunction.getNumericAfterText(text, "Щит ");
+//		}
+//		if (text.contains("Магический щит ")) {
+//			magicShield = MyFunction.getNumericAfterText(text, "Магический щит ");
+//		}
 		eff = this.effects;
 	}
 
